@@ -8,7 +8,7 @@ MCP server for Claude Code providing context management, todo persistence, and A
 - **Context Management**: Save code, suggestions, errors, and conversations with AI second opinions
 - **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic)
 - **Todo Persistence**: Never lose your todos when restarting - save and restore across sessions
-- **Project-Based**: Automatic project path detection and organization
+- **Project-Based Todos**: Todos organized by project directory (shared SQLite DB, filtered by `project_path`)
 - **Full-Text Search**: Find contexts and todos by content, tags, or metadata
 - **CLI Available**: Use standalone CLI tools in addition to MCP server
 

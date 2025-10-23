@@ -32,21 +32,39 @@ cp .env.example .env
 ### 2. Usage from Claude Code
 
 ```bash
+# Set PYTHONPATH (or add to your shell profile)
+export PYTHONPATH=.
+
 # Get ChatGPT's opinion on something
-python -m context_manager save-and-query \
+python -m src.context_manager save-and-query \
   --type suggestion \
   --title "Auth implementation plan" \
   --content "Your context here..."
 
 # Just save without querying
-python -m context_manager save \
+python -m src.context_manager save \
   --type code \
   --title "New feature" \
   --file path/to/code.py
 
 # List saved contexts
-python -m context_manager list
+python -m src.context_manager list-contexts
+
+# Search contexts
+python -m src.context_manager search "authentication"
+
+# Show full context details
+python -m src.context_manager show <context-id>
+
+# Query ChatGPT about existing context
+python -m src.context_manager query <context-id>
 ```
+
+**Available context types:**
+- `conversation` - Conversation history
+- `code` - Code snippets or files
+- `suggestion` - Implementation plans or recommendations
+- `error` - Error logs or debugging info
 
 ### 3. ChatGPT Desktop Integration
 

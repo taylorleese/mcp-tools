@@ -12,8 +12,8 @@ fi
 # Unset any conflicting environment variables
 unset OPENAI_API_KEY
 
-# Set PYTHONPATH
-export PYTHONPATH=.
+# Set PYTHONPATH to src/
+export PYTHONPATH="$(pwd)/src"
 
 # Run the CLI
-python -m src.context_manager "$@"
+python -m context_manager "$@"

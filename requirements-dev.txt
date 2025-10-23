@@ -6,7 +6,7 @@ pytest==8.4.2
 
 # Code Quality
 black==25.9.0
-ruff==0.14.1
+ruff==0.14.2
 mypy==1.18.2
 isort==7.0.0
 bandit==1.8.6

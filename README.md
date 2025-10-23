@@ -68,22 +68,17 @@ python -m src.context_manager query <context-id>
 
 ### 3. ChatGPT Desktop Integration
 
-Add to ChatGPT Desktop settings (Settings → Integrations → MCP):
-
-```json
-{
-  "mcpServers": {
-    "claude-context": {
-      "command": "python",
-      "args": ["-m", "mcp_server"],
-      "cwd": "/Users/tleese/chatmcp",
-      "env": {
-        "PYTHONPATH": "/Users/tleese/chatmcp/src"
-      }
-    }
-  }
-}
+```bash
+# Copy and customize the MCP config
+cp config/mcp_config.json.example config/mcp_config.json
+# Edit config/mcp_config.json and update the paths to your chatmcp directory
 ```
+
+Add the contents of `config/mcp_config.json` to ChatGPT Desktop settings:
+- Open ChatGPT Desktop
+- Go to Settings → Integrations → Model Context Protocol
+- Add the server configuration
+- Restart ChatGPT Desktop
 
 Then ask ChatGPT: "What recent suggestions did Claude Code make?"
 

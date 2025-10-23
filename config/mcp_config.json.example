@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "claude-context": {
+      "command": "python",
+      "args": ["-m", "src.mcp_server"],
+      "cwd": "/absolute/path/to/chatmcp",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/chatmcp"
+      }
+    }
+  }
+}

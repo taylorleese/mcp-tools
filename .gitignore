@@ -25,6 +25,9 @@ wheels/
 .env
 .venv
 
+# Configuration
+config/mcp_config.json
+
 # Database
 data/*.db
 data/*.db-journal

@@ -234,6 +234,68 @@ The AI's response appears immediately in your console. You can also ask specific
 ./mcp-tools context ask-claude <context-id> --question "Are there any security concerns?"
 ```
 
+## Sharing Contexts Between Agents
+
+mcp-tools makes it easy to share contexts and todos across multiple Claude Code sessions or agents.
+
+### MCP Resources (Passive Discovery)
+
+Claude Code can automatically discover and read contexts/todos via MCP resources:
+
+**Context Resources:**
+- `mcp-tools://contexts/recent` - Last 20 contexts
+- `mcp-tools://contexts/type/code` - Code contexts
+- `mcp-tools://contexts/type/suggestion` - Suggestions
+- `mcp-tools://contexts/type/conversation` - Conversations
+- `mcp-tools://contexts/type/error` - Errors/debugging
+
+**Todo Resources:**
+- `mcp-tools://todos/recent` - Last 20 todo snapshots (all projects)
+- `mcp-tools://todos/active` - Active todos for current working directory
+
+Resources are read-only views into the shared database. Claude Code can discover them automatically without explicit tool calls.
+
+### Shared Database Setup
+
+To share contexts between multiple Claude Code instances:
+
+1. **Choose a shared location** for the database:
+```bash
+# Example: Use a synced folder (Dropbox, iCloud, network drive)
+mkdir -p ~/Dropbox/mcp-tools-shared
+```
+
+2. **Update MCP config** for all Claude Code instances to point to the same database:
+```json
+{
+  "mcpServers": {
+    "mcp-tools": {
+      "command": "python",
+      "args": ["-m", "mcp_server"],
+      "cwd": "/absolute/path/to/mcp-tools",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/mcp-tools/src",
+        "MCP_TOOLS_DB_PATH": "/Users/you/Dropbox/mcp-tools-shared/contexts.db"
+      }
+    }
+  }
+}
+```
+
+3. **Restart all Claude Code instances** - they now share the same contexts and todos
+
+### How It Works
+
+- **Contexts**: Global across all projects (no project isolation)
+- **Todos**: Organized by `project_path` (each directory gets its own snapshots)
+- **Single SQLite DB**: All data stored in one database, filtered by resources/tools
+- **Automatic Updates**: Changes made in one session are immediately visible to others
+
+### Use Cases
+
+- **Multiple machines**: Keep contexts in sync across laptop and desktop
+- **Session continuity**: Pick up where you left off after restarting Claude Code
+
 ## Environment Variables
 
 ```bash

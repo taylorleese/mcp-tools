@@ -31,33 +31,37 @@ cp .env.example .env
 
 ### 2. Usage from Claude Code
 
+**Easy way** - Use the helper script:
 ```bash
-# Set PYTHONPATH (or add to your shell profile)
-export PYTHONPATH=.
-
 # Get ChatGPT's opinion on something
-python -m src.context_manager save-and-query \
+./chatmcp save-and-query \
   --type suggestion \
   --title "Auth implementation plan" \
   --content "Your context here..."
 
-# Just save without querying
-python -m src.context_manager save \
-  --type code \
-  --title "New feature" \
-  --file path/to/code.py
-
 # List saved contexts
-python -m src.context_manager list-contexts
+./chatmcp list-contexts
 
 # Search contexts
-python -m src.context_manager search "authentication"
+./chatmcp search "authentication"
 
 # Show full context details
-python -m src.context_manager show <context-id>
+./chatmcp show <context-id>
+```
 
-# Query ChatGPT about existing context
-python -m src.context_manager query <context-id>
+**Manual way** - Direct Python module:
+```bash
+# IMPORTANT: Unset conflicting environment variables first
+unset OPENAI_API_KEY
+
+# Set PYTHONPATH
+export PYTHONPATH=.
+
+# Run commands
+python -m src.context_manager save-and-query \
+  --type suggestion \
+  --title "Auth implementation plan" \
+  --content "Your context here..."
 ```
 
 **Available context types:**

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Helper script for ChatMCP CLI
+
+# Ensure we're in the right directory
+cd "$(dirname "$0")"
+
+# Activate venv if not already active
+if [ -z "$VIRTUAL_ENV" ]; then
+    source venv/bin/activate
+fi
+
+# Unset any conflicting environment variables
+unset OPENAI_API_KEY
+
+# Set PYTHONPATH
+export PYTHONPATH=.
+
+# Run the CLI
+python -m src.context_manager "$@"

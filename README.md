@@ -1,15 +1,16 @@
 # MCP Tools
 
-Share contexts and todo lists between Claude Code sessions. Get second opinions from ChatGPT or Claude via API. MCP server ready for future integration.
+MCP server for Claude Code providing context management, todo persistence, and AI second opinions. Share contexts and todos across sessions, get feedback from ChatGPT or Claude, and access everything via MCP tools.
 
 ## Features
 
+- **🔌 MCP Server**: Works NOW with Claude Code - full tool integration for contexts and todos
 - **Context Management**: Save code, suggestions, errors, and conversations with AI second opinions
 - **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic)
 - **Todo Persistence**: Never lose your todos when restarting - save and restore across sessions
 - **Project-Based**: Automatic project path detection and organization
 - **Full-Text Search**: Find contexts and todos by content, tags, or metadata
-- **MCP Ready**: Built-in MCP server for future ChatGPT Desktop integration
+- **CLI Available**: Use standalone CLI tools in addition to MCP server
 
 ## Quick Start
 
@@ -36,7 +37,43 @@ cp .env.example .env
 
 **Important:** Don't set API keys in your shell environment - they will override `.env`. If set, run `unset OPENAI_API_KEY` or `unset ANTHROPIC_API_KEY`.
 
-### Your First Commands
+### MCP Server Setup (Recommended)
+
+The primary way to use mcp-tools is via the MCP server in Claude Code:
+
+1. **Add to Claude Code settings** (add this JSON to your Claude Code MCP settings):
+
+```json
+{
+  "mcpServers": {
+    "mcp-tools": {
+      "command": "python",
+      "args": ["-m", "mcp_server"],
+      "cwd": "/absolute/path/to/mcp-tools",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/mcp-tools/src",
+        "MCP_TOOLS_DB_PATH": "/absolute/path/to/mcp-tools/data/contexts.db",
+        "OPENAI_API_KEY": "your-openai-key-here",
+        "ANTHROPIC_API_KEY": "your-anthropic-key-here"
+      }
+    }
+  }
+}
+```
+
+2. **Update the paths** in the config above with your actual installation path
+
+3. **Restart Claude Code** to load the MCP server
+
+4. **Use MCP tools in Claude Code**:
+   - "Save this context about authentication"
+   - "Ask ChatGPT about the last context I saved"
+   - "Show my active todos"
+   - "Search contexts tagged with 'bug'"
+
+All MCP tools are automatically available - see [MCP Server Tools](#mcp-server-tools) below.
+
+### CLI Usage (Alternative)
 
 ```bash
 # Get ChatGPT's opinion on something
@@ -236,7 +273,7 @@ MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ```
 mcp-tools/
 ├── src/
-│   ├── mcp_server/          # MCP server (future integration)
+│   ├── mcp_server/          # MCP server for Claude Code
 │   │   └── server.py        # MCP tools and resources
 │   ├── context_manager/     # CLI and storage
 │   │   ├── cli.py          # Click-based CLI
@@ -246,18 +283,14 @@ mcp-tools/
 │   └── models.py           # Pydantic data models
 ├── data/
 │   └── contexts.db         # SQLite database
-├── config/
-│   └── mcp_config.json.example
 ├── requirements.txt
 ├── requirements-dev.txt
-└── mcp-tools          # Helper script
+└── mcp-tools               # Helper script
 ```
 
-## Future: MCP Integration
+## MCP Server Tools
 
-> **Note:** ChatGPT Desktop doesn't support MCP servers yet, but this project is ready!
-
-The project includes a complete MCP server with these tools:
+The MCP server works NOW with Claude Code and provides these tools:
 
 **Context Tools:**
 - `context_search` - Search by query or tags
@@ -277,7 +310,7 @@ The project includes a complete MCP server with these tools:
 - `todo_restore` - Get active/specific snapshot
 - `todo_delete` - Delete by ID
 
-Once MCP clients add support, you'll be able to query: "What did Claude Code save about authentication?" or "Show my active todos" from ChatGPT Desktop.
+**Future:** Once ChatGPT Desktop adds MCP support, you'll be able to use these same tools there too.
 
 ## Development
 

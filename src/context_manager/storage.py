@@ -152,6 +152,13 @@ class ContextStorage:
             )
             conn.commit()
 
+    def delete_context(self, context_id: str) -> bool:
+        """Delete a context by ID. Returns True if deleted, False if not found."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("DELETE FROM contexts WHERE id = ?", (context_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+
     def get_contexts_by_tags(self, tags: list[str], limit: int = 10) -> list[ContextEntry]:
         """Get contexts that match any of the given tags."""
         # Build OR conditions for each tag (using parameterized queries)
@@ -259,6 +266,41 @@ class ContextStorage:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             return [self._row_to_todo_snapshot(row) for row in cursor.fetchall()]
+
+    def search_todo_snapshots(
+        self,
+        query: str,
+        project_path: str | None = None,
+        limit: int = 10,
+    ) -> list[TodoListSnapshot]:
+        """Search todo snapshots by content or context description."""
+        sql_query = """
+            SELECT * FROM todo_snapshots
+            WHERE (
+                todos LIKE ? OR
+                context LIKE ?
+            )
+        """
+        params: list[Any] = [f"%{query}%", f"%{query}%"]
+
+        if project_path:
+            sql_query += " AND project_path = ?"
+            params.append(project_path)
+
+        sql_query += " ORDER BY timestamp DESC LIMIT ?"
+        params.append(limit)
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(sql_query, params)
+            return [self._row_to_todo_snapshot(row) for row in cursor.fetchall()]
+
+    def delete_todo_snapshot(self, snapshot_id: str) -> bool:
+        """Delete a todo snapshot by ID. Returns True if deleted, False if not found."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("DELETE FROM todo_snapshots WHERE id = ?", (snapshot_id,))
+            conn.commit()
+            return cursor.rowcount > 0
 
     def _row_to_todo_snapshot(self, row: sqlite3.Row) -> TodoListSnapshot:
         """Convert a database row to a TodoListSnapshot."""

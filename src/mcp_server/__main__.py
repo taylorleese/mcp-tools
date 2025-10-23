@@ -4,7 +4,7 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from src.mcp_server.server import ContextMCPServer
+from mcp_server.server import ContextMCPServer
 
 # Load environment variables
 load_dotenv()

@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from src.models import ContextContent, ContextEntry
+from models import ContextContent, ContextEntry
 
 
 class ContextStorage:

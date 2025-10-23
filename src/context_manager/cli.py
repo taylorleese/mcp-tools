@@ -7,9 +7,9 @@ from pathlib import Path
 import click
 from dotenv import load_dotenv
 
-from src.context_manager.openai_client import ChatGPTClient
-from src.context_manager.storage import ContextStorage
-from src.models import ContextContent, ContextEntry
+from context_manager.openai_client import ChatGPTClient
+from context_manager.storage import ContextStorage
+from models import ContextContent, ContextEntry
 
 # Load environment variables
 load_dotenv()

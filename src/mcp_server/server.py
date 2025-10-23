@@ -8,8 +8,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, TextContent, Tool
 from pydantic import AnyUrl
 
-from src.context_manager.storage import ContextStorage
-from src.models import ContextEntry
+from context_manager.storage import ContextStorage
+from models import ContextEntry
 
 
 class ContextMCPServer:

@@ -4,7 +4,7 @@ import os
 
 from openai import OpenAI
 
-from src.models import ContextEntry
+from models import ContextEntry
 
 
 class ChatGPTClient:

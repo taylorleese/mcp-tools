@@ -1,11 +1,11 @@
 {
   "mcpServers": {
-    "claude-context": {
+    "mcp-tools": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/absolute/path/to/claude-context",
+      "cwd": "/absolute/path/to/mcp-tools",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/claude-context"
+        "PYTHONPATH": "/absolute/path/to/mcp-tools"
       }
     }
   }

@@ -16,7 +16,7 @@ Share contexts and todo lists between Claude Code sessions. Get ChatGPT's second
 
 ```bash
 # Navigate to project
-cd claude-context
+cd mcp-tools
 
 # Create and activate virtual environment
 python3.13 -m venv venv
@@ -37,14 +37,14 @@ cp .env.example .env
 
 ```bash
 # Get ChatGPT's opinion on something
-./claude-context context save-and-query \
+./mcp-tools context save-and-query \
   --type suggestion \
   --title "Redis caching strategy" \
   --content "Use Redis for session storage with 1-hour TTL" \
   --tags "caching,redis"
 
 # Save your current todos
-./claude-context todo save \
+./mcp-tools todo save \
   --todos '[
     {"content":"Fix auth bug","status":"in_progress","activeForm":"Fixing auth bug"},
     {"content":"Write tests","status":"pending","activeForm":"Writing tests"}
@@ -52,11 +52,11 @@ cp .env.example .env
   --context "Working on authentication"
 
 # List everything
-./claude-context context list
-./claude-context todo list
+./mcp-tools context list
+./mcp-tools todo list
 
 # Restore todos later
-./claude-context todo restore
+./mcp-tools todo restore
 ```
 
 ## Command Reference
@@ -65,25 +65,25 @@ cp .env.example .env
 
 ```bash
 # Save and query ChatGPT immediately
-./claude-context context save-and-query \
+./mcp-tools context save-and-query \
   --type <type> \
   --title "Title" \
   --content "..." \
   --tags "tag1,tag2"
 
 # Save without querying
-./claude-context context save --type code --file path/to/file.py
+./mcp-tools context save --type code --file path/to/file.py
 
 # Ask ChatGPT about existing context
-./claude-context context ask-chatgpt <context-id>
+./mcp-tools context ask-chatgpt <context-id>
 
 # Browse and search
-./claude-context context list [--limit N] [--type TYPE]
-./claude-context context search "query"
-./claude-context context show <context-id>
+./mcp-tools context list [--limit N] [--type TYPE]
+./mcp-tools context search "query"
+./mcp-tools context show <context-id>
 
 # Delete
-./claude-context context delete <context-id>
+./mcp-tools context delete <context-id>
 ```
 
 **Context Types:**
@@ -96,20 +96,20 @@ cp .env.example .env
 
 ```bash
 # Save current todos
-./claude-context todo save \
+./mcp-tools todo save \
   --todos '[{"content":"...","status":"pending","activeForm":"..."}]' \
   --context "What you're working on"
 
 # Restore (defaults to active snapshot for current project)
-./claude-context todo restore [<snapshot-id>]
+./mcp-tools todo restore [<snapshot-id>]
 
 # Browse and search
-./claude-context todo list [--project-path PATH]
-./claude-context todo search "query"
-./claude-context todo show <snapshot-id>
+./mcp-tools todo list [--project-path PATH]
+./mcp-tools todo search "query"
+./mcp-tools todo show <snapshot-id>
 
 # Delete
-./claude-context todo delete <snapshot-id>
+./mcp-tools todo delete <snapshot-id>
 ```
 
 **Todo Status:** `pending`, `in_progress`, `completed`
@@ -117,9 +117,9 @@ cp .env.example .env
 ### Get Help
 
 ```bash
-./claude-context --help
-./claude-context context --help
-./claude-context todo --help
+./mcp-tools --help
+./mcp-tools context --help
+./mcp-tools todo --help
 ```
 
 ## Common Workflows
@@ -129,7 +129,7 @@ cp .env.example .env
 When Claude suggests an implementation, get ChatGPT's perspective:
 
 ```bash
-./claude-context context save-and-query \
+./mcp-tools context save-and-query \
   --type suggestion \
   --title "Microservices vs Monolith for e-commerce" \
   --content "Building platform with 5 services. Start microservices or monolith first?" \
@@ -141,7 +141,7 @@ ChatGPT's response appears immediately in your console.
 ### Debug with Two Perspectives
 
 ```bash
-./claude-context context save-and-query \
+./mcp-tools context save-and-query \
   --type error \
   --title "CORS issue in production" \
   --content "Error: blocked by CORS policy. Headers: ..." \
@@ -152,7 +152,7 @@ ChatGPT's response appears immediately in your console.
 
 ```bash
 # End of work session
-./claude-context todo save \
+./mcp-tools todo save \
   --todos '[
     {"content":"Implement login","status":"completed","activeForm":"Implementing login"},
     {"content":"Add OAuth","status":"in_progress","activeForm":"Adding OAuth"},
@@ -161,25 +161,25 @@ ChatGPT's response appears immediately in your console.
   --context "Day 2 of auth feature"
 
 # Next session
-./claude-context todo restore
+./mcp-tools todo restore
 ```
 
 ### Share Across Claude Code Sessions
 
 ```bash
 # Session 1: Save interesting discussions
-./claude-context context save \
+./mcp-tools context save \
   --type conversation \
   --title "Performance optimization ideas" \
   --content "..." \
   --tags "performance"
 
 # Session 2: Find and review
-./claude-context context search "performance"
-./claude-context context show <context-id>
+./mcp-tools context search "performance"
+./mcp-tools context show <context-id>
 
 # Or get ChatGPT's opinion
-./claude-context context ask-chatgpt <context-id>
+./mcp-tools context ask-chatgpt <context-id>
 ```
 
 ## Environment Variables
@@ -189,8 +189,8 @@ ChatGPT's response appears immediately in your console.
 OPENAI_API_KEY=sk-...                       # Your OpenAI API key
 
 # Optional
-CLAUDE_CONTEXT_DB_PATH=./data/contexts.db   # Database path (default shown)
-CLAUDE_CONTEXT_MODEL=gpt-5                   # OpenAI model (default: gpt-5)
+MCP_TOOLS_DB_PATH=./data/contexts.db   # Database path (default shown)
+MCP_TOOLS_MODEL=gpt-5                   # OpenAI model (default: gpt-5)
 ```
 
 ## Troubleshooting
@@ -201,22 +201,22 @@ CLAUDE_CONTEXT_MODEL=gpt-5                   # OpenAI model (default: gpt-5)
 - Run `unset OPENAI_API_KEY` to clear shell environment variable
 
 ### "No module named context_manager"
-- Use `./claude-context` helper script (recommended)
+- Use `./mcp-tools` helper script (recommended)
 - Or set `PYTHONPATH=src` before running Python directly
 
 ### Commands not found
 - Activate venv: `source venv/bin/activate`
-- Make script executable: `chmod +x claude-context`
+- Make script executable: `chmod +x mcp-tools`
 
 ### Todos not restoring
 - Check you're in the same project directory
-- Use `./claude-context todo list` to see all snapshots
-- Restore specific snapshot: `./claude-context todo restore <snapshot-id>`
+- Use `./mcp-tools todo list` to see all snapshots
+- Restore specific snapshot: `./mcp-tools todo restore <snapshot-id>`
 
 ## Project Structure
 
 ```
-claude-context/
+mcp-tools/
 ├── src/
 │   ├── mcp_server/          # MCP server (future integration)
 │   │   └── server.py        # MCP tools and resources
@@ -231,7 +231,7 @@ claude-context/
 │   └── mcp_config.json.example
 ├── requirements.txt
 ├── requirements-dev.txt
-└── claude-context          # Helper script
+└── mcp-tools          # Helper script
 ```
 
 ## Future: MCP Integration

@@ -17,10 +17,10 @@ class ContextMCPServer:
 
     def __init__(self) -> None:
         """Initialize the MCP server."""
-        self.server = Server("claude-context")
+        self.server = Server("mcp-tools")
         # Use absolute path so it works regardless of cwd
         default_db = os.path.join(os.path.dirname(__file__), "..", "..", "data", "contexts.db")
-        db_path = os.getenv("CLAUDE_CONTEXT_DB_PATH", os.path.abspath(default_db))
+        db_path = os.getenv("MCP_TOOLS_DB_PATH", os.path.abspath(default_db))
         self.storage = ContextStorage(db_path)
 
         # Register handlers

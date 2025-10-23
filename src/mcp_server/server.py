@@ -20,7 +20,7 @@ class ContextMCPServer:
         self.server = Server("claude-context")
         # Use absolute path so it works regardless of cwd
         default_db = os.path.join(os.path.dirname(__file__), "..", "..", "data", "contexts.db")
-        db_path = os.getenv("CHATMCP_DB_PATH", os.path.abspath(default_db))
+        db_path = os.getenv("CLAUDE_CONTEXT_DB_PATH", os.path.abspath(default_db))
         self.storage = ContextStorage(db_path)
 
         # Register handlers

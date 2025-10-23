@@ -46,8 +46,14 @@ repos:
         args: [-c, pyproject.toml]
         additional_dependencies: ["bandit[toml]"]
 
-  - repo: https://github.com/pycqa/pylint
-    rev: v3.3.2
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
     hooks:
-      - id: pylint
-        args: [--disable=all, --enable=unused-import,undefined-variable,dangerous-default-value]
+      - id: pydocstyle
+        args: [--convention=google, --add-ignore=D100,D104]
+
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.14
+    hooks:
+      - id: vulture
+        args: [src/]

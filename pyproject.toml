@@ -9,15 +9,15 @@ description = "Claude Code ↔ ChatGPT context sharing via MCP"
 requires-python = ">=3.13"
 
 [tool.black]
-line-length = 100
+line-length = 140
 target-version = ['py313']
 
 [tool.isort]
 profile = "black"
-line_length = 100
+line_length = 140
 
 [tool.ruff]
-line-length = 100
+line-length = 140
 target-version = "py313"
 
 [tool.ruff.lint]
@@ -31,10 +31,18 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 
+[[tool.mypy.overrides]]
+module = "src.context_manager.cli"
+disallow_untyped_decorators = false
+
 [tool.bandit]
 exclude_dirs = ["tests", "venv"]
 skips = ["B101"]
 
-[tool.pylint.messages_control]
-disable = ["all"]
-enable = ["unused-import", "undefined-variable", "dangerous-default-value"]
+[tool.pydocstyle]
+convention = "google"
+add_ignore = ["D100", "D104"]  # Ignore missing docstrings in modules and packages
+
+[tool.vulture]
+exclude = ["venv/", "build/"]
+min_confidence = 80

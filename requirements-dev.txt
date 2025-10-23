@@ -10,7 +10,8 @@ ruff==0.8.4
 mypy==1.13.0
 isort==5.13.2
 bandit==1.7.10
-pylint==3.3.2
+pydocstyle==6.3.0
+vulture==2.14
 
 # Pre-commit
 pre-commit==4.0.1

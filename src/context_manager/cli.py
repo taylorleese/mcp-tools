@@ -133,8 +133,9 @@ def save_and_query(
 
 @context.command("ask-chatgpt")
 @click.argument("context_id")
-def ask_chatgpt(context_id: str) -> None:
-    """Ask ChatGPT for a second opinion about an existing context."""
+@click.option("--question", help="Specific question to ask (optional)")
+def ask_chatgpt(context_id: str, question: str | None) -> None:
+    """Ask ChatGPT a question about a context, or get a general second opinion."""
     storage = get_storage()
     context = storage.get_context(context_id)
 
@@ -142,24 +143,75 @@ def ask_chatgpt(context_id: str) -> None:
         click.echo(f"Error: Context {context_id} not found", err=True)
         sys.exit(1)
 
-    click.echo(f"⏳ Querying ChatGPT about '{context.title}'...")
+    if question:
+        click.echo(f"⏳ Asking ChatGPT: '{question}'")
+    else:
+        click.echo(f"⏳ Querying ChatGPT about '{context.title}'...")
+
     try:
         chatgpt = ChatGPTClient()
-        response = chatgpt.get_second_opinion(context)
+        response = chatgpt.get_second_opinion(context, question)
 
-        # Update context with response
-        storage.update_chatgpt_response(context.id, response)
+        # Only save if it's a generic second opinion (no custom question)
+        if not question:
+            storage.update_chatgpt_response(context.id, response)
 
         # Display response
         click.echo("\n" + "=" * 60)
-        click.echo("ChatGPT's Second Opinion:")
+        header = "ChatGPT's Answer:" if question else "ChatGPT's Second Opinion:"
+        click.echo(header)
         click.echo("=" * 60)
         click.echo(response)
         click.echo("=" * 60)
-        click.echo("\n✓ Response saved to context entry")
+
+        if not question:
+            click.echo("\n✓ Response saved to context entry")
 
     except Exception as e:
         click.echo(f"\n✗ Error querying ChatGPT: {e}", err=True)
+        sys.exit(1)
+
+
+@context.command("ask-claude")
+@click.argument("context_id")
+@click.option("--question", help="Specific question to ask (optional)")
+def ask_claude(context_id: str, question: str | None) -> None:
+    """Ask Claude a question about a context, or get a general second opinion."""
+    storage = get_storage()
+    context = storage.get_context(context_id)
+
+    if not context:
+        click.echo(f"Error: Context {context_id} not found", err=True)
+        sys.exit(1)
+
+    if question:
+        click.echo(f"⏳ Asking Claude: '{question}'")
+    else:
+        click.echo(f"⏳ Querying Claude about '{context.title}'...")
+
+    try:
+        from context_manager.anthropic_client import ClaudeClient
+
+        claude = ClaudeClient()
+        response = claude.get_second_opinion(context, question)
+
+        # Only save if it's a generic second opinion (no custom question)
+        if not question:
+            storage.update_claude_response(context.id, response)
+
+        # Display response
+        click.echo("\n" + "=" * 60)
+        header = "Claude's Answer:" if question else "Claude's Second Opinion:"
+        click.echo(header)
+        click.echo("=" * 60)
+        click.echo(response)
+        click.echo("=" * 60)
+
+        if not question:
+            click.echo("\n✓ Response saved to context entry")
+
+    except Exception as e:
+        click.echo(f"\n✗ Error querying Claude: {e}", err=True)
         sys.exit(1)
 
 

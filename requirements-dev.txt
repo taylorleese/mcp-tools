@@ -12,6 +12,7 @@ isort==5.13.2
 bandit==1.7.10
 pydocstyle==6.3.0
 vulture==2.14
+pipdeptree==2.24.0
 
 # Pre-commit
 pre-commit==4.0.1

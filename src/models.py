@@ -27,6 +27,7 @@ class ContextEntry(BaseModel):
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
     chatgpt_response: str | None = None
+    claude_response: str | None = None
 
     model_config: ClassVar[ConfigDict] = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
 

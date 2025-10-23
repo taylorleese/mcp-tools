@@ -31,7 +31,8 @@ class ContextStorage:
                     content TEXT NOT NULL,
                     tags TEXT,
                     metadata TEXT,
-                    chatgpt_response TEXT
+                    chatgpt_response TEXT,
+                    claude_response TEXT
                 )
             """
             )
@@ -69,8 +70,8 @@ class ContextStorage:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO contexts
-                (id, timestamp, type, title, content, tags, metadata, chatgpt_response)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id, timestamp, type, title, content, tags, metadata, chatgpt_response, claude_response)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     context.id,
@@ -81,6 +82,7 @@ class ContextStorage:
                     ",".join(context.tags),
                     json.dumps(context.metadata),
                     context.chatgpt_response,
+                    context.claude_response,
                 ),
             )
             conn.commit()
@@ -152,6 +154,15 @@ class ContextStorage:
             )
             conn.commit()
 
+    def update_claude_response(self, context_id: str, response: str) -> None:
+        """Update the Claude response for a context."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE contexts SET claude_response = ? WHERE id = ?",
+                (response, context_id),
+            )
+            conn.commit()
+
     def delete_context(self, context_id: str) -> bool:
         """Delete a context by ID. Returns True if deleted, False if not found."""
         with sqlite3.connect(self.db_path) as conn:
@@ -183,6 +194,7 @@ class ContextStorage:
             tags=row["tags"].split(",") if row["tags"] else [],
             metadata=json.loads(row["metadata"]) if row["metadata"] else {},
             chatgpt_response=row["chatgpt_response"],
+            claude_response=row["claude_response"],
         )
 
     # Todo snapshot methods

@@ -33,31 +33,31 @@ class ContextMCPServer:
         """List available resources."""
         return [
             Resource(
-                uri=AnyUrl("claude-context://recent"),
+                uri=AnyUrl("mcp-tools://recent"),
                 name="Recent Contexts",
                 description="Last 20 context entries from Claude Code",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("claude-context://types/conversation"),
+                uri=AnyUrl("mcp-tools://types/conversation"),
                 name="Conversation Contexts",
                 description="All conversation-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("claude-context://types/code"),
+                uri=AnyUrl("mcp-tools://types/code"),
                 name="Code Contexts",
                 description="All code-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("claude-context://types/suggestion"),
+                uri=AnyUrl("mcp-tools://types/suggestion"),
                 name="Suggestion Contexts",
                 description="All suggestion-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("claude-context://types/error"),
+                uri=AnyUrl("mcp-tools://types/error"),
                 name="Error Contexts",
                 description="All error/debugging contexts",
                 mimeType="application/json",
@@ -68,16 +68,16 @@ class ContextMCPServer:
         """Read a resource by URI."""
         uri_str = str(uri)
 
-        if uri_str == "claude-context://recent":
+        if uri_str == "mcp-tools://recent":
             contexts = self.storage.list_contexts(limit=20)
             return self._format_contexts_response(contexts)
 
-        if uri_str.startswith("claude-context://types/"):
+        if uri_str.startswith("mcp-tools://types/"):
             context_type = uri_str.split("/")[-1]
             contexts = self.storage.list_contexts(type_filter=context_type, limit=50)
             return self._format_contexts_response(contexts)
 
-        if uri_str.startswith("claude-context://entry/"):
+        if uri_str.startswith("mcp-tools://entry/"):
             context_id = uri_str.split("/")[-1]
             context = self.storage.get_context(context_id)
             if not context:
@@ -269,6 +269,41 @@ class ContextMCPServer:
                     "required": ["snapshot_id"],
                 },
             ),
+            # AI opinion tools
+            Tool(
+                name="ask_chatgpt",
+                description="Ask ChatGPT a question about a context entry, or get a general second opinion",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "context_id": {"type": "string", "description": "Context ID to ask about"},
+                        "question": {
+                            "type": "string",
+                            "description": (
+                                "Optional specific question to ask about the context. If not provided, gets a general second opinion."
+                            ),
+                        },
+                    },
+                    "required": ["context_id"],
+                },
+            ),
+            Tool(
+                name="ask_claude",
+                description="Ask Claude a question about a context entry, or get a general second opinion",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "context_id": {"type": "string", "description": "Context ID to ask about"},
+                        "question": {
+                            "type": "string",
+                            "description": (
+                                "Optional specific question to ask about the context. If not provided, gets a general second opinion."
+                            ),
+                        },
+                    },
+                    "required": ["context_id"],
+                },
+            ),
         ]
 
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> list[TextContent]:
@@ -376,6 +411,51 @@ class ContextMCPServer:
                 return [TextContent(type="text", text=f"✓ Todo snapshot {snapshot_id} deleted")]
             return [TextContent(type="text", text=f"Todo snapshot {snapshot_id} not found")]
 
+        # AI opinion tools
+        if name == "ask_chatgpt":
+            context_id = arguments["context_id"]
+            question = arguments.get("question")
+            context = self.storage.get_context(context_id)
+            if not context:
+                return [TextContent(type="text", text=f"Context {context_id} not found")]
+
+            try:
+                from context_manager.openai_client import ChatGPTClient
+
+                client = ChatGPTClient()
+                response = client.get_second_opinion(context, question)
+
+                # Only save to database if it's a generic second opinion (no custom question)
+                if not question:
+                    self.storage.update_chatgpt_response(context_id, response)
+
+                header = "ChatGPT's Answer:" if question else "ChatGPT's Opinion:"
+                return [TextContent(type="text", text=f"{header}\n\n{response}")]
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Error: {e}")]
+
+        if name == "ask_claude":
+            context_id = arguments["context_id"]
+            question = arguments.get("question")
+            context = self.storage.get_context(context_id)
+            if not context:
+                return [TextContent(type="text", text=f"Context {context_id} not found")]
+
+            try:
+                from context_manager.anthropic_client import ClaudeClient
+
+                client = ClaudeClient()
+                response = client.get_second_opinion(context, question)
+
+                # Only save to database if it's a generic second opinion (no custom question)
+                if not question:
+                    self.storage.update_claude_response(context_id, response)
+
+                header = "Claude's Answer:" if question else "Claude's Opinion:"
+                return [TextContent(type="text", text=f"{header}\n\n{response}")]
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Error: {e}")]
+
         return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
     def _format_contexts_response(self, contexts: list[ContextEntry]) -> str:
@@ -385,9 +465,13 @@ class ContextMCPServer:
 
         lines = [f"Found {len(contexts)} contexts:\n"]
         for ctx in contexts:
-            has_chatgpt = "✓" if ctx.chatgpt_response else "○"
+            chatgpt_icon = "✓" if ctx.chatgpt_response else "○"
+            claude_icon = "✓" if ctx.claude_response else "○"
             tags_str = f" [{', '.join(ctx.tags)}]" if ctx.tags else ""
-            lines.append(f"{has_chatgpt} [{ctx.type}] {ctx.title}{tags_str}\n   ID: {ctx.id}\n   Timestamp: {ctx.timestamp.isoformat()}\n")
+            lines.append(
+                f"GPT:{chatgpt_icon} Claude:{claude_icon} [{ctx.type}] {ctx.title}{tags_str}\n"
+                f"   ID: {ctx.id}\n   Timestamp: {ctx.timestamp.isoformat()}\n"
+            )
         return "\n".join(lines)
 
     def _format_context_detail(self, context: Any) -> str:
@@ -423,6 +507,9 @@ class ContextMCPServer:
 
         if context.chatgpt_response:
             lines.append(f"\n## ChatGPT's Previous Response:\n{context.chatgpt_response}")
+
+        if context.claude_response:
+            lines.append(f"\n## Claude's Previous Response:\n{context.claude_response}")
 
         return "\n".join(lines)
 

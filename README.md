@@ -1,10 +1,11 @@
-# Claude Context
+# MCP Tools
 
-Share contexts and todo lists between Claude Code sessions. Get ChatGPT's second opinion via OpenAI API. MCP server ready for future integration.
+Share contexts and todo lists between Claude Code sessions. Get second opinions from ChatGPT or Claude via API. MCP server ready for future integration.
 
 ## Features
 
-- **Context Management**: Save code, suggestions, errors, and conversations with ChatGPT's second opinion
+- **Context Management**: Save code, suggestions, errors, and conversations with AI second opinions
+- **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic)
 - **Todo Persistence**: Never lose your todos when restarting - save and restore across sessions
 - **Project-Based**: Automatic project path detection and organization
 - **Full-Text Search**: Find contexts and todos by content, tags, or metadata
@@ -26,12 +27,14 @@ source venv/bin/activate  # macOS/Linux
 # Install dependencies
 pip install -r requirements-dev.txt
 
-# Configure API key
+# Configure API keys
 cp .env.example .env
-# Edit .env and add: OPENAI_API_KEY=sk-...
+# Edit .env and add your API keys:
+# OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**Important:** Don't set `OPENAI_API_KEY` in your shell environment - it will override `.env`. If set, run `unset OPENAI_API_KEY`.
+**Important:** Don't set API keys in your shell environment - they will override `.env`. If set, run `unset OPENAI_API_KEY` or `unset ANTHROPIC_API_KEY`.
 
 ### Your First Commands
 
@@ -74,8 +77,9 @@ cp .env.example .env
 # Save without querying
 ./mcp-tools context save --type code --file path/to/file.py
 
-# Ask ChatGPT about existing context
-./mcp-tools context ask-chatgpt <context-id>
+# Ask ChatGPT or Claude about existing context
+./mcp-tools context ask-chatgpt <context-id> [--question "Your question"]
+./mcp-tools context ask-claude <context-id> [--question "Your question"]
 
 # Browse and search
 ./mcp-tools context list [--limit N] [--type TYPE]
@@ -126,7 +130,7 @@ cp .env.example .env
 
 ### Get a Second Opinion
 
-When Claude suggests an implementation, get ChatGPT's perspective:
+When Claude Code suggests an implementation, get another AI's perspective:
 
 ```bash
 ./mcp-tools context save-and-query \
@@ -136,7 +140,18 @@ When Claude suggests an implementation, get ChatGPT's perspective:
   --tags "architecture,scalability"
 ```
 
-ChatGPT's response appears immediately in your console.
+The AI's response appears immediately in your console. You can also ask specific questions or get Claude's perspective:
+
+```bash
+# Ask a specific question about the context
+./mcp-tools context ask-chatgpt <context-id> --question "What are the scalability concerns?"
+
+# Get Claude's general opinion
+./mcp-tools context ask-claude <context-id>
+
+# Or ask Claude a specific question
+./mcp-tools context ask-claude <context-id> --question "How would you handle database migrations?"
+```
 
 ### Debug with Two Perspectives
 
@@ -178,27 +193,30 @@ ChatGPT's response appears immediately in your console.
 ./mcp-tools context search "performance"
 ./mcp-tools context show <context-id>
 
-# Or get ChatGPT's opinion
-./mcp-tools context ask-chatgpt <context-id>
+# Or ask AI specific questions
+./mcp-tools context ask-chatgpt <context-id> --question "What's the performance impact?"
+./mcp-tools context ask-claude <context-id> --question "Are there any security concerns?"
 ```
 
 ## Environment Variables
 
 ```bash
-# Required
-OPENAI_API_KEY=sk-...                       # Your OpenAI API key
+# Required (at least one for AI features)
+OPENAI_API_KEY=sk-...                           # Your OpenAI API key
+ANTHROPIC_API_KEY=sk-ant-...                    # Your Anthropic API key
 
 # Optional
-MCP_TOOLS_DB_PATH=./data/contexts.db   # Database path (default shown)
-MCP_TOOLS_MODEL=gpt-5                   # OpenAI model (default: gpt-5)
+MCP_TOOLS_DB_PATH=./data/contexts.db            # Database path (default shown)
+MCP_TOOLS_MODEL=gpt-5                           # OpenAI model (default: gpt-5)
+MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ```
 
 ## Troubleshooting
 
 ### "Error 401: Invalid API key"
-- Verify `OPENAI_API_KEY` is set in `.env`
-- Check billing is enabled on your OpenAI account
-- Run `unset OPENAI_API_KEY` to clear shell environment variable
+- Verify API keys are set in `.env` (OPENAI_API_KEY and/or ANTHROPIC_API_KEY)
+- Check billing is enabled on your OpenAI/Anthropic account
+- Run `unset OPENAI_API_KEY` or `unset ANTHROPIC_API_KEY` to clear shell environment variables
 
 ### "No module named context_manager"
 - Use `./mcp-tools` helper script (recommended)
@@ -223,7 +241,8 @@ mcp-tools/
 │   ├── context_manager/     # CLI and storage
 │   │   ├── cli.py          # Click-based CLI
 │   │   ├── storage.py      # SQLite operations
-│   │   └── openai_client.py # ChatGPT API client
+│   │   ├── openai_client.py # ChatGPT API client
+│   │   └── anthropic_client.py # Claude API client
 │   └── models.py           # Pydantic data models
 ├── data/
 │   └── contexts.db         # SQLite database
@@ -245,6 +264,10 @@ The project includes a complete MCP server with these tools:
 - `context_get` - Get by ID
 - `context_list` - List recent
 - `context_delete` - Delete by ID
+
+**AI Opinion Tools:**
+- `ask_chatgpt` - Ask ChatGPT about a context (supports custom questions)
+- `ask_claude` - Ask Claude about a context (supports custom questions)
 
 **Todo Tools:**
 - `todo_search` - Search snapshots
@@ -279,9 +302,10 @@ mypy src/
 
 1. **Use descriptive titles** - Makes searching easier later
 2. **Add relevant tags** - Helps organize and find contexts
-3. **Be specific in content** - More detail = better ChatGPT responses
-4. **Review ChatGPT suggestions** - They're helpful opinions, not rules
-5. **Save todos regularly** - Build habit of saving at end of sessions
+3. **Be specific in content** - More detail = better AI responses
+4. **Compare AI opinions** - Get both ChatGPT and Claude perspectives on important decisions
+5. **Review AI suggestions** - They're helpful opinions, not rules
+6. **Save todos regularly** - Build habit of saving at end of sessions
 
 ## License
 

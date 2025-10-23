@@ -57,3 +57,13 @@ repos:
     hooks:
       - id: vulture
         args: [src/]
+
+  - repo: local
+    hooks:
+      - id: pipdeptree
+        name: pipdeptree
+        entry: pipdeptree
+        args: [--warn, fail]
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,27 +1,27 @@
-"""OpenAI API client for getting ChatGPT responses."""
+"""Anthropic API client for getting Claude responses."""
 
 import os
 
-from openai import OpenAI
+from anthropic import Anthropic
 
 from models import ContextEntry
 
 
-class ChatGPTClient:
-    """Client for interacting with OpenAI's ChatGPT API."""
+class ClaudeClient:
+    """Client for interacting with Anthropic's Claude API."""
 
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
-        """Initialize the ChatGPT client."""
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        """Initialize the Claude client."""
+        self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         if not self.api_key:
-            msg = "OpenAI API key must be provided or set in OPENAI_API_KEY environment variable"
+            msg = "Anthropic API key must be provided or set in ANTHROPIC_API_KEY environment variable"
             raise ValueError(msg)
 
-        self.model = model or os.getenv("MCP_TOOLS_MODEL", "gpt-5")
-        self.client = OpenAI(api_key=self.api_key)
+        self.model = model or os.getenv("MCP_TOOLS_CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
+        self.client = Anthropic(api_key=self.api_key)
 
     def get_second_opinion(self, context: ContextEntry, question: str | None = None) -> str:
-        """Get ChatGPT's second opinion on a context, or answer a specific question.
+        """Get Claude's second opinion on a context, or answer a specific question.
 
         Args:
             context: The context entry to analyze
@@ -33,11 +33,11 @@ class ChatGPTClient:
 architecture decisions, and implementation plans.
 
 Provide clear, actionable answers based on the context provided."""
-            user_content = self._format_context_for_chatgpt(context, question)
+            user_content = self._format_context_for_claude(context, question)
         else:
             # Generic second opinion mode
             system_prompt = """You are a senior software engineering consultant providing second opinions on code, \
-architecture decisions, and implementation plans from Claude Code.
+architecture decisions, and implementation plans.
 
 Your role is to:
 - Provide constructive, balanced feedback
@@ -47,28 +47,29 @@ Your role is to:
 - Be concise but thorough
 
 Format your response clearly with sections as needed."""
-            user_content = self._format_context_for_chatgpt(context)
+            user_content = self._format_context_for_claude(context)
 
-        response = self.client.chat.completions.create(
+        response = self.client.messages.create(
             model=self.model,
+            max_tokens=4096,
+            system=system_prompt,
             messages=[
-                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
             temperature=0.7,
         )
 
-        return response.choices[0].message.content or ""
+        return response.content[0].text if response.content else ""
 
-    def _format_context_for_chatgpt(self, context: ContextEntry, question: str | None = None) -> str:
-        """Format a context entry for ChatGPT consumption.
+    def _format_context_for_claude(self, context: ContextEntry, question: str | None = None) -> str:
+        """Format a context entry for Claude consumption.
 
         Args:
             context: The context entry to format
             question: Optional specific question to append
         """
         parts = [
-            f"# Context from Claude Code: {context.title}",
+            f"# Context: {context.title}",
             f"\n**Type:** {context.type}",
             f"**Timestamp:** {context.timestamp.isoformat()}",
         ]
@@ -99,6 +100,6 @@ Format your response clearly with sections as needed."""
         if question:
             parts.append(f"\n---\n**Question:** {question}")
         else:
-            parts.append("\n---\nPlease provide a second opinion on the above context from Claude Code.")
+            parts.append("\n---\nPlease provide a second opinion on the above context.")
 
         return "\n".join(parts)

@@ -55,7 +55,6 @@ Format your response clearly with sections as needed."""
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
-            temperature=0.7,
         )
 
         return response.choices[0].message.content or ""

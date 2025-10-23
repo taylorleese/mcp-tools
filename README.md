@@ -35,7 +35,7 @@ cp .env.example .env
 # ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**Important:** Don't set API keys in your shell environment - they will override `.env`. If set, run `unset OPENAI_API_KEY` or `unset ANTHROPIC_API_KEY`.
+**Note:** The `./mcp-tools` wrapper automatically uses `.env` and ignores shell environment variables.
 
 ### MCP Server Setup (Recommended)
 
@@ -51,21 +51,20 @@ The primary way to use mcp-tools is via the MCP server in Claude Code:
       "args": ["-m", "mcp_server"],
       "cwd": "/absolute/path/to/mcp-tools",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/mcp-tools/src",
-        "MCP_TOOLS_DB_PATH": "/absolute/path/to/mcp-tools/data/contexts.db",
-        "OPENAI_API_KEY": "your-openai-key-here",
-        "ANTHROPIC_API_KEY": "your-anthropic-key-here"
+        "PYTHONPATH": "/absolute/path/to/mcp-tools/src"
       }
     }
   }
 }
 ```
 
-2. **Update the paths** in the config above with your actual installation path
+2. **Update the path** in the config above with your actual installation path
 
-3. **Restart Claude Code** to load the MCP server
+3. **Configure API keys** in `.env` file (API keys are read from `.env`, not from MCP config)
 
-4. **Use MCP tools in Claude Code**:
+4. **Restart Claude Code** to load the MCP server
+
+5. **Use MCP tools in Claude Code**:
    - "Save this context about authentication"
    - "Ask ChatGPT about the last context I saved"
    - "Show my active todos"
@@ -253,7 +252,7 @@ MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ### "Error 401: Invalid API key"
 - Verify API keys are set in `.env` (OPENAI_API_KEY and/or ANTHROPIC_API_KEY)
 - Check billing is enabled on your OpenAI/Anthropic account
-- Run `unset OPENAI_API_KEY` or `unset ANTHROPIC_API_KEY` to clear shell environment variables
+- The `./mcp-tools` wrapper automatically unsets shell environment variables to use `.env`
 
 ### "No module named context_manager"
 - Use `./mcp-tools` helper script (recommended)

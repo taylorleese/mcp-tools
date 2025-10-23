@@ -12,5 +12,12 @@ fi
 # Set PYTHONPATH to src/
 export PYTHONPATH="$(pwd)/src"
 
+# Unset environment variables to ensure .env file is used
+unset OPENAI_API_KEY
+unset ANTHROPIC_API_KEY
+unset MCP_TOOLS_DB_PATH
+unset MCP_TOOLS_MODEL
+unset MCP_TOOLS_CLAUDE_MODEL
+
 # Run the CLI
 python3 -m context_manager "$@"

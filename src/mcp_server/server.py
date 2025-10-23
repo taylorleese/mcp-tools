@@ -32,34 +32,48 @@ class ContextMCPServer:
     async def list_resources(self) -> list[Resource]:
         """List available resources."""
         return [
+            # Context resources
             Resource(
-                uri=AnyUrl("mcp-tools://recent"),
+                uri=AnyUrl("mcp-tools://contexts/recent"),
                 name="Recent Contexts",
-                description="Last 20 context entries from Claude Code",
+                description="Last 20 context entries",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://types/conversation"),
+                uri=AnyUrl("mcp-tools://contexts/type/conversation"),
                 name="Conversation Contexts",
                 description="All conversation-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://types/code"),
+                uri=AnyUrl("mcp-tools://contexts/type/code"),
                 name="Code Contexts",
                 description="All code-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://types/suggestion"),
+                uri=AnyUrl("mcp-tools://contexts/type/suggestion"),
                 name="Suggestion Contexts",
                 description="All suggestion-type contexts",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://types/error"),
+                uri=AnyUrl("mcp-tools://contexts/type/error"),
                 name="Error Contexts",
                 description="All error/debugging contexts",
+                mimeType="application/json",
+            ),
+            # Todo resources
+            Resource(
+                uri=AnyUrl("mcp-tools://todos/recent"),
+                name="Recent Todo Snapshots",
+                description="Last 20 todo snapshots across all projects",
+                mimeType="application/json",
+            ),
+            Resource(
+                uri=AnyUrl("mcp-tools://todos/active"),
+                name="Active Todo Snapshot",
+                description="Active todo snapshot for current project",
                 mimeType="application/json",
             ),
         ]
@@ -68,21 +82,29 @@ class ContextMCPServer:
         """Read a resource by URI."""
         uri_str = str(uri)
 
-        if uri_str == "mcp-tools://recent":
+        # Context resources
+        if uri_str == "mcp-tools://contexts/recent":
             contexts = self.storage.list_contexts(limit=20)
             return self._format_contexts_response(contexts)
 
-        if uri_str.startswith("mcp-tools://types/"):
+        if uri_str.startswith("mcp-tools://contexts/type/"):
             context_type = uri_str.split("/")[-1]
             contexts = self.storage.list_contexts(type_filter=context_type, limit=50)
             return self._format_contexts_response(contexts)
 
-        if uri_str.startswith("mcp-tools://entry/"):
-            context_id = uri_str.split("/")[-1]
-            context = self.storage.get_context(context_id)
-            if not context:
-                return f"Context {context_id} not found"
-            return self._format_context_detail(context)
+        # Todo resources
+        if uri_str == "mcp-tools://todos/recent":
+            snapshots = self.storage.list_todo_snapshots(limit=20)
+            return self._format_todo_snapshots_response(snapshots)
+
+        if uri_str == "mcp-tools://todos/active":
+            import os
+
+            project_path = os.getcwd()
+            snapshot = self.storage.get_active_todo_snapshot(project_path)
+            if not snapshot:
+                return f"No active todo snapshot found for project: {project_path}"
+            return self._format_todo_snapshot_detail(snapshot)
 
         return f"Unknown resource: {uri_str}"
 

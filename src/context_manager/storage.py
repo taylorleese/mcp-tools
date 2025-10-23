@@ -30,6 +30,9 @@ class ContextStorage:
                     title TEXT NOT NULL,
                     content TEXT NOT NULL,
                     tags TEXT,
+                    project_path TEXT NOT NULL,
+                    session_id TEXT,
+                    session_timestamp TEXT,
                     metadata TEXT,
                     chatgpt_response TEXT,
                     claude_response TEXT
@@ -39,6 +42,9 @@ class ContextStorage:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON contexts(type)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON contexts(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_title ON contexts(title COLLATE NOCASE)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_project_path ON contexts(project_path)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_session_id ON contexts(session_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_session_timestamp ON contexts(session_timestamp)")
 
             # Todo snapshots table
             conn.execute(
@@ -70,8 +76,9 @@ class ContextStorage:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO contexts
-                (id, timestamp, type, title, content, tags, metadata, chatgpt_response, claude_response)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (id, timestamp, type, title, content, tags, project_path, session_id,
+                 session_timestamp, metadata, chatgpt_response, claude_response)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     context.id,
@@ -80,6 +87,9 @@ class ContextStorage:
                     context.title,
                     context.content.model_dump_json(),
                     ",".join(context.tags),
+                    context.project_path,
+                    context.session_id,
+                    context.session_timestamp.isoformat() if context.session_timestamp else None,
                     json.dumps(context.metadata),
                     context.chatgpt_response,
                     context.claude_response,
@@ -102,16 +112,25 @@ class ContextStorage:
     def list_contexts(
         self,
         type_filter: str | None = None,
+        project_path: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[ContextEntry]:
         """List contexts with optional filters."""
         query = "SELECT * FROM contexts"
         params: list[Any] = []
+        conditions = []
 
         if type_filter:
-            query += " WHERE type = ?"
+            conditions.append("type = ?")
             params.append(type_filter)
+
+        if project_path:
+            conditions.append("project_path = ?")
+            params.append(project_path)
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
 
         query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
@@ -183,6 +202,36 @@ class ContextStorage:
             cursor = conn.execute(query, params)
             return [self._row_to_context(row) for row in cursor.fetchall()]
 
+    def list_sessions(self, project_path: str, limit: int = 10) -> list[dict[str, Any]]:
+        """List recent sessions for a project (grouped by session_id)."""
+        query = """
+            SELECT
+                session_id,
+                session_timestamp,
+                COUNT(*) as context_count,
+                MIN(timestamp) as first_context,
+                MAX(timestamp) as last_context
+            FROM contexts
+            WHERE project_path = ? AND session_id IS NOT NULL
+            GROUP BY session_id
+            ORDER BY session_timestamp DESC
+            LIMIT ?
+        """
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (project_path, limit))
+            return [dict(row) for row in cursor.fetchall()]
+
+    def get_session_contexts(self, session_id: str) -> list[ContextEntry]:
+        """Get all contexts from a specific session."""
+        query = "SELECT * FROM contexts WHERE session_id = ? ORDER BY timestamp ASC"
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, (session_id,))
+            return [self._row_to_context(row) for row in cursor.fetchall()]
+
     def _row_to_context(self, row: sqlite3.Row) -> ContextEntry:
         """Convert a database row to a ContextEntry."""
         return ContextEntry(
@@ -192,6 +241,9 @@ class ContextStorage:
             title=row["title"],
             content=ContextContent.model_validate_json(row["content"]),
             tags=row["tags"].split(",") if row["tags"] else [],
+            project_path=row["project_path"],
+            session_id=row["session_id"],
+            session_timestamp=datetime.fromisoformat(row["session_timestamp"]) if row["session_timestamp"] else None,
             metadata=json.loads(row["metadata"]) if row["metadata"] else {},
             chatgpt_response=row["chatgpt_response"],
             claude_response=row["claude_response"],

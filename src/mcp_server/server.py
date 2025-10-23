@@ -1,7 +1,9 @@
 """MCP server for exposing Claude Code contexts to ChatGPT."""
 
 import os
+from datetime import UTC, datetime
 from typing import Any
+from uuid import uuid4
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -23,6 +25,10 @@ class ContextMCPServer:
         db_path = os.getenv("MCP_TOOLS_DB_PATH", os.path.abspath(default_db))
         self.storage = ContextStorage(db_path)
 
+        # Generate session ID for this MCP server instance
+        self.session_id = str(uuid4())
+        self.session_timestamp = datetime.now(UTC)
+
         # Register handlers
         self.server.list_resources()(self.list_resources)
         self.server.read_resource()(self.read_resource)
@@ -32,35 +38,17 @@ class ContextMCPServer:
     async def list_resources(self) -> list[Resource]:
         """List available resources."""
         return [
-            # Context resources
+            # Project-based context resources
             Resource(
-                uri=AnyUrl("mcp-tools://contexts/recent"),
-                name="Recent Contexts",
-                description="Last 20 context entries",
+                uri=AnyUrl("mcp-tools://contexts/project/recent"),
+                name="Recent Project Contexts",
+                description="Recent contexts for current project",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://contexts/type/conversation"),
-                name="Conversation Contexts",
-                description="All conversation-type contexts",
-                mimeType="application/json",
-            ),
-            Resource(
-                uri=AnyUrl("mcp-tools://contexts/type/code"),
-                name="Code Contexts",
-                description="All code-type contexts",
-                mimeType="application/json",
-            ),
-            Resource(
-                uri=AnyUrl("mcp-tools://contexts/type/suggestion"),
-                name="Suggestion Contexts",
-                description="All suggestion-type contexts",
-                mimeType="application/json",
-            ),
-            Resource(
-                uri=AnyUrl("mcp-tools://contexts/type/error"),
-                name="Error Contexts",
-                description="All error/debugging contexts",
+                uri=AnyUrl("mcp-tools://contexts/project/sessions"),
+                name="Project Sessions",
+                description="List of recent Claude Code sessions for current project",
                 mimeType="application/json",
             ),
             # Todo resources
@@ -81,15 +69,20 @@ class ContextMCPServer:
     async def read_resource(self, uri: AnyUrl) -> str:
         """Read a resource by URI."""
         uri_str = str(uri)
+        project_path = os.getcwd()
 
-        # Context resources
-        if uri_str == "mcp-tools://contexts/recent":
-            contexts = self.storage.list_contexts(limit=20)
+        # Project-based context resources
+        if uri_str == "mcp-tools://contexts/project/recent":
+            contexts = self.storage.list_contexts(project_path=project_path, limit=20)
             return self._format_contexts_response(contexts)
 
-        if uri_str.startswith("mcp-tools://contexts/type/"):
-            context_type = uri_str.split("/")[-1]
-            contexts = self.storage.list_contexts(type_filter=context_type, limit=50)
+        if uri_str == "mcp-tools://contexts/project/sessions":
+            sessions = self.storage.list_sessions(project_path, limit=10)
+            return self._format_sessions_response(sessions)
+
+        if uri_str.startswith("mcp-tools://contexts/session/"):
+            session_id = uri_str.split("/")[-1]
+            contexts = self.storage.get_session_contexts(session_id)
             return self._format_contexts_response(contexts)
 
         # Todo resources
@@ -98,9 +91,6 @@ class ContextMCPServer:
             return self._format_todo_snapshots_response(snapshots)
 
         if uri_str == "mcp-tools://todos/active":
-            import os
-
-            project_path = os.getcwd()
             snapshot = self.storage.get_active_todo_snapshot(project_path)
             if not snapshot:
                 return f"No active todo snapshot found for project: {project_path}"
@@ -176,6 +166,32 @@ class ContextMCPServer:
                         "context_id": {"type": "string", "description": "Context ID to delete"},
                     },
                     "required": ["context_id"],
+                },
+            ),
+            Tool(
+                name="context_save",
+                description="Save a new context entry for the current project",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "description": "Context type",
+                            "enum": ["conversation", "code", "suggestion", "error"],
+                        },
+                        "title": {"type": "string", "description": "Context title"},
+                        "content": {"type": "string", "description": "Context content"},
+                        "tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Tags for categorization",
+                        },
+                        "session_context_id": {
+                            "type": "string",
+                            "description": "Link to existing context ID",
+                        },
+                    },
+                    "required": ["type", "title", "content"],
                 },
             ),
             # Todo tools
@@ -370,6 +386,45 @@ class ContextMCPServer:
                 return [TextContent(type="text", text=f"✓ Context {context_id} deleted")]
             return [TextContent(type="text", text=f"Context {context_id} not found")]
 
+        if name == "context_save":
+            from models import ContextContent
+
+            context_type = arguments["type"]
+            title = arguments["title"]
+            content_text = arguments["content"]
+            tags = arguments.get("tags", [])
+            session_context_id = arguments.get("session_context_id")
+
+            # Parse content based on type
+            if context_type == "conversation":
+                content = ContextContent(messages=[content_text])
+            elif context_type == "code":
+                content = ContextContent(code={"snippet": content_text})
+            elif context_type == "suggestion":
+                content = ContextContent(suggestions=content_text)
+            elif context_type == "error":
+                content = ContextContent(errors=content_text)
+            else:
+                content = ContextContent(messages=[content_text])
+
+            # Create context entry with session info
+            context = ContextEntry(
+                type=context_type,
+                title=title,
+                content=content,
+                tags=tags,
+                project_path=os.getcwd(),
+                session_id=self.session_id,
+                session_timestamp=self.session_timestamp,
+            )
+
+            # Link to session context if provided
+            if session_context_id:
+                context.metadata["session_context_id"] = session_context_id
+
+            self.storage.save_context(context)
+            return [TextContent(type="text", text=f"✓ Context saved (ID: {context.id})")]
+
         # Todo tools
         if name == "todo_search":
             query = arguments["query"]
@@ -533,6 +588,22 @@ class ContextMCPServer:
         if context.claude_response:
             lines.append(f"\n## Claude's Previous Response:\n{context.claude_response}")
 
+        return "\n".join(lines)
+
+    def _format_sessions_response(self, sessions: list[dict[str, Any]]) -> str:
+        """Format a list of sessions for response."""
+        if not sessions:
+            return "No sessions found for this project."
+
+        lines = ["Recent Claude Code sessions for this project:\n"]
+        for session in sessions:
+            session_time = datetime.fromisoformat(session["session_timestamp"])
+            context_count = session["context_count"]
+            lines.append(
+                f"Session: {session_time.strftime('%Y-%m-%d %I:%M %p')} ({context_count} contexts)\n"
+                f"   Session ID: {session['session_id']}\n"
+                f"   Resource: mcp-tools://contexts/session/{session['session_id']}\n"
+            )
         return "\n".join(lines)
 
     def _format_todo_snapshots_response(self, snapshots: list[Any]) -> str:

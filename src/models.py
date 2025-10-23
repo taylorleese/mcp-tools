@@ -25,6 +25,9 @@ class ContextEntry(BaseModel):
     title: str
     content: ContextContent
     tags: list[str] = Field(default_factory=list)
+    project_path: str  # Required: project directory where context was created
+    session_id: str | None = None  # UUID of the Claude Code session
+    session_timestamp: datetime | None = None  # When the session started
     metadata: dict[str, Any] = Field(default_factory=dict)
     chatgpt_response: str | None = None
     claude_response: str | None = None

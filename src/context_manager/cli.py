@@ -62,6 +62,7 @@ def save(
         title=title,
         content=context_content,
         tags=tags.split(",") if tags else [],
+        project_path=os.getcwd(),  # Use current working directory
     )
 
     # Save to storage
@@ -102,6 +103,7 @@ def save_and_query(
         title=title,
         content=context_content,
         tags=tags.split(",") if tags else [],
+        project_path=os.getcwd(),  # Use current working directory
     )
 
     # Save to storage

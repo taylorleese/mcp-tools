@@ -4,13 +4,15 @@ MCP server for Claude Code providing context management, todo persistence, and A
 
 ## Features
 
-- **🔌 MCP Server**: Works NOW with Claude Code - full tool integration for contexts and todos
-- **Context Management**: Save code, suggestions, errors, and conversations with AI second opinions
-- **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic)
-- **Todo Persistence**: Never lose your todos when restarting - save and restore across sessions
-- **Project-Based Todos**: Todos organized by project directory (shared SQLite DB, filtered by `project_path`)
-- **Full-Text Search**: Find contexts and todos by content, tags, or metadata
-- **CLI Available**: Use standalone CLI tools in addition to MCP server
+- **🔌 MCP Server**: Works NOW with Claude Code - full tool integration ready
+- **Session Continuity**: Never lose context when restarting Claude Code - restore "what was I working on last session"
+- **Project Organization**: Contexts and todos automatically organized by project directory
+- **Session Tracking**: Every Claude Code session gets a unique ID - track your work over time
+- **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic) on your code and decisions
+- **Context Types**: Save conversations, code snippets, architectural suggestions, or error traces
+- **Persistent Todos**: Save and restore your todo list across sessions - never forget where you left off
+- **Full-Text Search**: Find anything by content, tags, project, or session
+- **CLI + MCP**: Use via Claude Code MCP tools or standalone CLI commands
 
 ## Quick Start
 
@@ -243,15 +245,21 @@ mcp-tools makes it easy to share contexts and todos across multiple Claude Code 
 Claude Code can automatically discover and read contexts/todos via MCP resources:
 
 **Context Resources:**
-- `mcp-tools://contexts/recent` - Last 20 contexts
-- `mcp-tools://contexts/type/code` - Code contexts
-- `mcp-tools://contexts/type/suggestion` - Suggestions
-- `mcp-tools://contexts/type/conversation` - Conversations
-- `mcp-tools://contexts/type/error` - Errors/debugging
+- `mcp-tools://contexts/project/recent` - Recent contexts for current project
+- `mcp-tools://contexts/project/sessions` - List of recent Claude Code sessions for current project
+- `mcp-tools://contexts/session/{session_id}` - All contexts from a specific session
 
 **Todo Resources:**
 - `mcp-tools://todos/recent` - Last 20 todo snapshots (all projects)
 - `mcp-tools://todos/active` - Active todos for current working directory
+
+**Session Tracking:**
+Each Claude Code session automatically gets a unique session ID. All contexts saved during that session are tagged with:
+- `session_id` - UUID of the Claude Code session
+- `session_timestamp` - When the session started
+- `project_path` - Directory where the context was created
+
+This makes it easy to restore context from previous sessions: "Show me what I was working on in my last session"
 
 Resources are read-only views into the shared database. Claude Code can discover them automatically without explicit tool calls.
 
@@ -286,9 +294,10 @@ mkdir -p ~/Dropbox/mcp-tools-shared
 
 ### How It Works
 
-- **Contexts**: Global across all projects (no project isolation)
+- **Contexts**: Organized by `project_path` (each directory gets its own contexts)
+- **Session Tracking**: Contexts tagged with session ID and timestamp for easy restoration
 - **Todos**: Organized by `project_path` (each directory gets its own snapshots)
-- **Single SQLite DB**: All data stored in one database, filtered by resources/tools
+- **Single SQLite DB**: All data stored in one database, filtered by project and session
 - **Automatic Updates**: Changes made in one session are immediately visible to others
 
 ### Use Cases
@@ -354,6 +363,7 @@ mcp-tools/
 The MCP server works NOW with Claude Code and provides these tools:
 
 **Context Tools:**
+- `context_save` - Save a new context (automatically includes session info)
 - `context_search` - Search by query or tags
 - `context_get` - Get by ID
 - `context_list` - List recent
@@ -370,6 +380,12 @@ The MCP server works NOW with Claude Code and provides these tools:
 - `todo_save` - Save snapshot
 - `todo_restore` - Get active/specific snapshot
 - `todo_delete` - Delete by ID
+
+**Session Tracking:**
+When saving contexts through MCP tools, they are automatically tagged with:
+- Current project directory (`project_path`)
+- Session ID (unique per Claude Code session)
+- Session timestamp (when the session started)
 
 **Future:** Once ChatGPT Desktop adds MCP support, you'll be able to use these same tools there too.
 

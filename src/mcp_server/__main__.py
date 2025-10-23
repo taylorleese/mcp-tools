@@ -16,5 +16,5 @@ def main() -> None:
     asyncio.run(server.run())
 
 
-if __name__ == "__main__":
-    main()
+# Always run main when this module is executed
+main()

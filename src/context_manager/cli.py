@@ -304,6 +304,34 @@ def show(context_id: str) -> None:
         click.echo(context.chatgpt_response)
 
 
+@context.command("delete")
+@click.argument("context_id")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
+def delete_context(context_id: str, yes: bool) -> None:
+    """Delete a context by ID."""
+    storage = get_storage()
+
+    # Verify context exists
+    context = storage.get_context(context_id)
+    if not context:
+        click.echo(f"Error: Context {context_id} not found", err=True)
+        sys.exit(1)
+
+    # Confirm deletion unless --yes flag is used
+    if not yes:
+        click.echo(f"Delete context '{context.title}' ({context_id})? [y/N]: ", nl=False)
+        if not click.confirm("", default=False):
+            click.echo("Cancelled")
+            return
+
+    # Delete the context
+    if storage.delete_context(context_id):
+        click.echo(f"✓ Context {context_id} deleted")
+    else:
+        click.echo(f"Error: Failed to delete context {context_id}", err=True)
+        sys.exit(1)
+
+
 def _parse_content(context_type: str, content: str) -> ContextContent:
     """Parse content based on context type."""
     context_content = ContextContent()
@@ -482,6 +510,62 @@ def show_todo(snapshot_id: str) -> None:
         click.echo(f"{i}. {status_icon} [{todo_item.status}] {todo_item.content}")
         click.echo(f"   Active form: {todo_item.activeForm}")
         click.echo()
+
+
+@todo.command("search")
+@click.argument("query_text")
+@click.option("--project-path", help="Filter by project path")
+@click.option("--limit", default=10, help="Number of results")
+def search_todos(query_text: str, project_path: str | None, limit: int) -> None:
+    """Search todo snapshots by content or context."""
+    storage = get_storage()
+    snapshots = storage.search_todo_snapshots(query_text, project_path=project_path, limit=limit)
+
+    if not snapshots:
+        click.echo(f"No todo snapshots found matching '{query_text}'")
+        return
+
+    click.echo(f"\nFound {len(snapshots)} todo snapshots matching '{query_text}':\n")
+    for snapshot in snapshots:
+        active_icon = "★" if snapshot.is_active else "○"
+        completed = sum(1 for t in snapshot.todos if t.status == "completed")
+        total = len(snapshot.todos)
+
+        click.echo(f"{active_icon} {snapshot.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        click.echo(f"   ID: {snapshot.id}")
+        if snapshot.context:
+            click.echo(f"   Context: {snapshot.context}")
+        click.echo(f"   Progress: {completed}/{total} completed")
+        click.echo()
+
+
+@todo.command("delete")
+@click.argument("snapshot_id")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
+def delete_todo(snapshot_id: str, yes: bool) -> None:
+    """Delete a todo snapshot by ID."""
+    storage = get_storage()
+
+    # Verify snapshot exists
+    snapshot = storage.get_todo_snapshot(snapshot_id)
+    if not snapshot:
+        click.echo(f"Error: Snapshot {snapshot_id} not found", err=True)
+        sys.exit(1)
+
+    # Confirm deletion unless --yes flag is used
+    if not yes:
+        context_str = f" - {snapshot.context}" if snapshot.context else ""
+        click.echo(f"Delete todo snapshot from {snapshot.timestamp.strftime('%Y-%m-%d %H:%M:%S')}{context_str}? [y/N]: ", nl=False)
+        if not click.confirm("", default=False):
+            click.echo("Cancelled")
+            return
+
+    # Delete the snapshot
+    if storage.delete_todo_snapshot(snapshot_id):
+        click.echo(f"✓ Todo snapshot {snapshot_id} deleted")
+    else:
+        click.echo(f"Error: Failed to delete snapshot {snapshot_id}", err=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

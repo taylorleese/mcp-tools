@@ -375,6 +375,24 @@ The MCP server works NOW with Claude Code and provides these tools:
 
 ## Development
 
+### Setup for Contributors
+
+```bash
+# Clone and install
+git clone https://github.com/taylorleese/mcp-tools.git
+cd mcp-tools
+python3.13 -m venv venv
+source venv/bin/activate
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks (IMPORTANT!)
+pre-commit install
+
+# Copy and configure .env
+cp .env.example .env
+# Edit .env with your API keys
+```
+
 ### Running Tests
 ```bash
 source venv/bin/activate
@@ -383,7 +401,7 @@ pytest
 
 ### Code Quality
 ```bash
-# Run all checks
+# Run all checks (runs automatically on commit after pre-commit install)
 pre-commit run --all-files
 
 # Individual tools

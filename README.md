@@ -265,15 +265,23 @@ Resources are read-only views into the shared database. Claude Code can discover
 
 ### Shared Database Setup
 
-To share contexts between multiple Claude Code instances:
+**By default**, mcp-tools stores all data in `~/.mcp-tools/contexts.db`, which is automatically shared across all projects on the same machine. No additional configuration needed!
 
-1. **Choose a shared location** for the database:
+**For advanced use cases** (syncing across multiple machines via Dropbox, iCloud, etc.):
+
+1. **Choose a synced location** for the database:
 ```bash
 # Example: Use a synced folder (Dropbox, iCloud, network drive)
 mkdir -p ~/Dropbox/mcp-tools-shared
 ```
 
-2. **Update MCP config** for all Claude Code instances to point to the same database:
+2. **Update `.env` file** or MCP config to point to the synced database:
+```bash
+# In .env file
+MCP_TOOLS_DB_PATH=~/Dropbox/mcp-tools-shared/contexts.db
+```
+
+Or in your MCP config:
 ```json
 {
   "mcpServers": {
@@ -290,7 +298,7 @@ mkdir -p ~/Dropbox/mcp-tools-shared
 }
 ```
 
-3. **Restart all Claude Code instances** - they now share the same contexts and todos
+3. **Restart Claude Code** - it now uses the synced database location
 
 ### How It Works
 
@@ -309,12 +317,12 @@ mkdir -p ~/Dropbox/mcp-tools-shared
 
 ```bash
 # Required (at least one for AI features)
-OPENAI_API_KEY=sk-...                           # Your OpenAI API key
-ANTHROPIC_API_KEY=sk-ant-...                    # Your Anthropic API key
+OPENAI_API_KEY=sk-...                              # Your OpenAI API key
+ANTHROPIC_API_KEY=sk-ant-...                       # Your Anthropic API key
 
 # Optional
-MCP_TOOLS_DB_PATH=./data/contexts.db            # Database path (default shown)
-MCP_TOOLS_MODEL=gpt-5                           # OpenAI model (default: gpt-5)
+MCP_TOOLS_DB_PATH=~/.mcp-tools/contexts.db         # Shared database location (default)
+MCP_TOOLS_MODEL=gpt-5                              # OpenAI model (default: gpt-5)
 MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ```
 

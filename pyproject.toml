@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chatmcp"
+version = "0.1.0"
+description = "Claude Code ↔ ChatGPT context sharing via MCP"
+requires-python = ">=3.13"
+
+[tool.black]
+line-length = 100
+target-version = ['py313']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "C4", "DTZ", "T10", "EM", "ISC", "ICN", "PIE", "PT", "Q", "RSE", "RET", "SIM", "TID", "ARG", "PLE", "PLW", "RUF"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv"]
+skips = ["B101"]
+
+[tool.pylint.messages_control]
+disable = ["all"]
+enable = ["unused-import", "undefined-variable", "dangerous-default-value"]

@@ -1,0 +1,16 @@
+# Development Dependencies
+-r requirements.txt
+
+# Testing
+pytest==8.3.4
+
+# Code Quality
+black==24.10.0
+ruff==0.8.4
+mypy==1.13.0
+isort==5.13.2
+bandit==1.7.10
+pylint==3.3.2
+
+# Pre-commit
+pre-commit==4.0.1

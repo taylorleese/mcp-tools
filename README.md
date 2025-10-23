@@ -20,7 +20,9 @@ source venv/bin/activate  # On macOS/Linux
 venv\Scripts\activate  # On Windows
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements-dev.txt  # For development
+# or
+pip install -r requirements.txt  # For production only
 
 # Configure environment
 cp .env.example .env

@@ -1,1 +1,1 @@
-"""ChatMCP - Claude Code and ChatGPT context sharing."""
+"""MCP Tools - Context management, todo persistence, and AI second opinions."""

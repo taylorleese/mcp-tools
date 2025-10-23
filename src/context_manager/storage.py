@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from models import ContextContent, ContextEntry
+from models import ContextContent, ContextEntry, Todo, TodoListSnapshot
 
 
 class ContextStorage:
@@ -38,6 +38,29 @@ class ContextStorage:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_type ON contexts(type)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON contexts(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_title ON contexts(title COLLATE NOCASE)")
+
+            # Todo snapshots table
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS todo_snapshots (
+                    id TEXT PRIMARY KEY,
+                    timestamp TEXT NOT NULL,
+                    project_path TEXT NOT NULL,
+                    git_branch TEXT,
+                    context TEXT,
+                    session_context_id TEXT,
+                    is_active INTEGER DEFAULT 0,
+                    todos TEXT NOT NULL,
+                    metadata TEXT,
+                    FOREIGN KEY (session_context_id) REFERENCES contexts(id)
+                )
+            """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_todo_project ON todo_snapshots(project_path)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_todo_timestamp ON todo_snapshots(timestamp)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_todo_active ON todo_snapshots(is_active)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_todo_branch ON todo_snapshots(git_branch)")
+
             conn.commit()
 
     def save_context(self, context: ContextEntry) -> None:
@@ -153,4 +176,103 @@ class ContextStorage:
             tags=row["tags"].split(",") if row["tags"] else [],
             metadata=json.loads(row["metadata"]) if row["metadata"] else {},
             chatgpt_response=row["chatgpt_response"],
+        )
+
+    # Todo snapshot methods
+
+    def save_todo_snapshot(self, snapshot: TodoListSnapshot) -> None:
+        """Save a todo list snapshot to the database."""
+        with sqlite3.connect(self.db_path) as conn:
+            # Mark other snapshots for this project as inactive
+            if snapshot.is_active:
+                conn.execute(
+                    "UPDATE todo_snapshots SET is_active = 0 WHERE project_path = ?",
+                    (snapshot.project_path,),
+                )
+
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO todo_snapshots
+                (id, timestamp, project_path, git_branch, context, session_context_id,
+                 is_active, todos, metadata)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    snapshot.id,
+                    snapshot.timestamp.isoformat(),
+                    snapshot.project_path,
+                    snapshot.git_branch,
+                    snapshot.context,
+                    snapshot.session_context_id,
+                    1 if snapshot.is_active else 0,
+                    json.dumps([todo.model_dump() for todo in snapshot.todos]),
+                    json.dumps(snapshot.metadata),
+                ),
+            )
+            conn.commit()
+
+    def get_todo_snapshot(self, snapshot_id: str) -> TodoListSnapshot | None:
+        """Retrieve a todo snapshot by ID."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute("SELECT * FROM todo_snapshots WHERE id = ?", (snapshot_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            return self._row_to_todo_snapshot(row)
+
+    def get_active_todo_snapshot(self, project_path: str) -> TodoListSnapshot | None:
+        """Get the active todo snapshot for a project."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(
+                "SELECT * FROM todo_snapshots WHERE project_path = ? AND is_active = 1",
+                (project_path,),
+            )
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            return self._row_to_todo_snapshot(row)
+
+    def list_todo_snapshots(
+        self,
+        project_path: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> list[TodoListSnapshot]:
+        """List todo snapshots with optional filters."""
+        query = "SELECT * FROM todo_snapshots"
+        params: list[Any] = []
+
+        if project_path:
+            query += " WHERE project_path = ?"
+            params.append(project_path)
+
+        query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.execute(query, params)
+            return [self._row_to_todo_snapshot(row) for row in cursor.fetchall()]
+
+    def _row_to_todo_snapshot(self, row: sqlite3.Row) -> TodoListSnapshot:
+        """Convert a database row to a TodoListSnapshot."""
+        todos_data = json.loads(row["todos"])
+        todos = [Todo(**todo) for todo in todos_data]
+
+        return TodoListSnapshot(
+            id=row["id"],
+            timestamp=datetime.fromisoformat(row["timestamp"]),
+            project_path=row["project_path"],
+            git_branch=row["git_branch"],
+            context=row["context"],
+            session_context_id=row["session_context_id"],
+            is_active=bool(row["is_active"]),
+            todos=todos,
+            metadata=json.loads(row["metadata"]) if row["metadata"] else {},
         )

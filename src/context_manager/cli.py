@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from context_manager.openai_client import ChatGPTClient
 from context_manager.storage import ContextStorage
-from models import ContextContent, ContextEntry
+from models import ContextContent, ContextEntry, Todo, TodoListSnapshot
 
 # Load environment variables
 load_dotenv()
@@ -17,7 +17,7 @@ load_dotenv()
 
 def get_storage() -> ContextStorage:
     """Get the context storage instance."""
-    db_path = os.getenv("CHATMCP_DB_PATH", "./data/contexts.db")
+    db_path = os.getenv("CLAUDE_CONTEXT_DB_PATH", "./data/contexts.db")
     return ContextStorage(db_path)
 
 
@@ -26,7 +26,12 @@ def cli() -> None:
     """Claude Code ↔ ChatGPT context sharing CLI."""
 
 
-@cli.command()
+@cli.group()
+def context() -> None:
+    """Manage context entries."""
+
+
+@context.command()
 @click.option("--type", "context_type", required=True, help="Context type")
 @click.option("--title", required=True, help="Context title")
 @click.option("--content", help="Content as text")
@@ -66,7 +71,7 @@ def save(
     click.echo(f"✓ Context saved (ID: {context_entry.id})")
 
 
-@cli.command("save-and-query")
+@context.command("save-and-query")
 @click.option("--type", "context_type", required=True, help="Context type")
 @click.option("--title", required=True, help="Context title")
 @click.option("--content", help="Content as text")
@@ -126,10 +131,10 @@ def save_and_query(
         sys.exit(1)
 
 
-@cli.command()
+@context.command("ask-chatgpt")
 @click.argument("context_id")
-def query(context_id: str) -> None:
-    """Query ChatGPT about an existing context."""
+def ask_chatgpt(context_id: str) -> None:
+    """Ask ChatGPT for a second opinion about an existing context."""
     storage = get_storage()
     context = storage.get_context(context_id)
 
@@ -158,7 +163,7 @@ def query(context_id: str) -> None:
         sys.exit(1)
 
 
-@cli.command()
+@context.command("list")
 @click.option("--type", "context_type", help="Filter by type")
 @click.option("--limit", default=20, help="Number of results")
 @click.option("--offset", default=0, help="Offset for pagination")
@@ -180,7 +185,7 @@ def list_contexts(context_type: str | None, limit: int, offset: int) -> None:
         )
 
 
-@cli.command()
+@context.command("search")
 @click.argument("query_text")
 @click.option("--type", "context_type", help="Filter by type")
 @click.option("--limit", default=10, help="Number of results")
@@ -202,7 +207,7 @@ def search(query_text: str, context_type: str | None, limit: int) -> None:
         )
 
 
-@cli.command()
+@context.command("show")
 @click.argument("context_id")
 def show(context_id: str) -> None:
     """Show full details of a context."""
@@ -264,6 +269,167 @@ def _parse_content(context_type: str, content: str) -> ContextContent:
         context_content.suggestions = content
 
     return context_content
+
+
+# Todo group commands
+
+
+@cli.group()
+def todo() -> None:
+    """Manage todo list snapshots."""
+
+
+@todo.command("save")
+@click.option("--context", "context_desc", help="Description of what you're working on")
+@click.option("--link-context", "context_id", help="Link to existing context ID")
+@click.option("--todos", required=True, help="JSON array of todo items")
+@click.option("--project-path", help="Project path (defaults to current directory)")
+def save_todos(
+    context_desc: str | None,
+    context_id: str | None,
+    todos: str,
+    project_path: str | None,
+) -> None:
+    """Save current todo list."""
+    import json
+
+    # Parse todos JSON
+    try:
+        todos_data = json.loads(todos)
+        todo_list = [Todo(**todo) for todo in todos_data]
+    except Exception as e:
+        click.echo(f"Error: Invalid todos JSON: {e}", err=True)
+        sys.exit(1)
+
+    # Get project path
+    if not project_path:
+        project_path = os.getcwd()
+
+    # Create snapshot
+    snapshot = TodoListSnapshot(
+        project_path=project_path,
+        todos=todo_list,
+        context=context_desc,
+        session_context_id=context_id,
+        is_active=True,
+    )
+
+    # Save to storage
+    storage = get_storage()
+    storage.save_todo_snapshot(snapshot)
+
+    click.echo(f"✓ Todo list saved (ID: {snapshot.id})")
+    click.echo(f"  Project: {project_path}")
+    click.echo(f"  Todos: {len(todo_list)}")
+
+
+@todo.command("restore")
+@click.argument("snapshot_id", required=False)
+@click.option("--project-path", help="Project path (defaults to current directory)")
+def restore_todos(snapshot_id: str | None, project_path: str | None) -> None:
+    """Restore todo list from a snapshot."""
+    import json
+
+    storage = get_storage()
+
+    if snapshot_id:
+        # Restore specific snapshot
+        snapshot = storage.get_todo_snapshot(snapshot_id)
+        if not snapshot:
+            click.echo(f"Error: Snapshot {snapshot_id} not found", err=True)
+            sys.exit(1)
+    else:
+        # Restore active snapshot for current project
+        if not project_path:
+            project_path = os.getcwd()
+
+        snapshot = storage.get_active_todo_snapshot(project_path)
+        if not snapshot:
+            click.echo(f"No active todo snapshot found for {project_path}", err=True)
+            sys.exit(1)
+
+    # Display snapshot info
+    click.echo(f"\n{'=' * 60}")
+    click.echo(f"Snapshot ID: {snapshot.id}")
+    click.echo(f"Saved: {snapshot.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+    click.echo(f"Project: {snapshot.project_path}")
+    if snapshot.context:
+        click.echo(f"Context: {snapshot.context}")
+    click.echo(f"{'=' * 60}\n")
+
+    # Display todos
+    click.echo("Todo List:\n")
+    for i, todo_item in enumerate(snapshot.todos, 1):
+        status_icon = {"pending": "○", "in_progress": "⟳", "completed": "✓"}.get(todo_item.status, "○")
+        click.echo(f"{i}. {status_icon} [{todo_item.status}] {todo_item.content}")
+
+    # Output JSON for easy parsing by Claude Code
+    click.echo(f"\n{'=' * 60}")
+    click.echo("JSON (for restore):")
+    click.echo(json.dumps([todo.model_dump() for todo in snapshot.todos], indent=2))
+
+
+@todo.command("list")
+@click.option("--project-path", help="Filter by project path")
+@click.option("--limit", default=20, help="Number of results")
+@click.option("--offset", default=0, help="Offset for pagination")
+def list_todos(project_path: str | None, limit: int, offset: int) -> None:
+    """List saved todo snapshots."""
+    storage = get_storage()
+
+    # Use current directory if no project path specified
+    if not project_path:
+        project_path = os.getcwd()
+
+    snapshots = storage.list_todo_snapshots(project_path=project_path, limit=limit, offset=offset)
+
+    if not snapshots:
+        click.echo(f"No todo snapshots found for {project_path}")
+        return
+
+    click.echo(f"\nFound {len(snapshots)} todo snapshots:\n")
+    for snapshot in snapshots:
+        active_icon = "★" if snapshot.is_active else "○"
+        completed = sum(1 for t in snapshot.todos if t.status == "completed")
+        total = len(snapshot.todos)
+
+        click.echo(f"{active_icon} {snapshot.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        click.echo(f"   ID: {snapshot.id}")
+        if snapshot.context:
+            click.echo(f"   Context: {snapshot.context}")
+        click.echo(f"   Progress: {completed}/{total} completed")
+        click.echo()
+
+
+@todo.command("show")
+@click.argument("snapshot_id")
+def show_todo(snapshot_id: str) -> None:
+    """Show full details of a todo snapshot."""
+    storage = get_storage()
+    snapshot = storage.get_todo_snapshot(snapshot_id)
+
+    if not snapshot:
+        click.echo(f"Error: Snapshot {snapshot_id} not found", err=True)
+        sys.exit(1)
+
+    click.echo(f"\n{'=' * 60}")
+    click.echo(f"Snapshot ID: {snapshot.id}")
+    click.echo(f"Saved: {snapshot.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+    click.echo(f"Project: {snapshot.project_path}")
+    if snapshot.context:
+        click.echo(f"Context: {snapshot.context}")
+    if snapshot.session_context_id:
+        click.echo(f"Linked Context: {snapshot.session_context_id}")
+    click.echo(f"Active: {'Yes' if snapshot.is_active else 'No'}")
+    click.echo(f"{'=' * 60}\n")
+
+    # Display todos
+    click.echo("Todo List:\n")
+    for i, todo_item in enumerate(snapshot.todos, 1):
+        status_icon = {"pending": "○", "in_progress": "⟳", "completed": "✓"}.get(todo_item.status, "○")
+        click.echo(f"{i}. {status_icon} [{todo_item.status}] {todo_item.content}")
+        click.echo(f"   Active form: {todo_item.activeForm}")
+        click.echo()
 
 
 if __name__ == "__main__":

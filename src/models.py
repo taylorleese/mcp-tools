@@ -36,3 +36,27 @@ class ContextSearchResult(BaseModel):
 
     context: ContextEntry
     relevance_score: float = 1.0
+
+
+class Todo(BaseModel):
+    """Represents a single todo item."""
+
+    content: str
+    status: str  # "pending" | "in_progress" | "completed"
+    activeForm: str  # noqa: N815 - matches Claude Code TodoWrite tool format
+
+
+class TodoListSnapshot(BaseModel):
+    """Represents a saved snapshot of a todo list."""
+
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = Field(default_factory=datetime.now)
+    project_path: str
+    git_branch: str | None = None
+    todos: list[Todo]
+    context: str | None = None
+    session_context_id: str | None = None
+    is_active: bool = False
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    model_config: ClassVar[ConfigDict] = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})

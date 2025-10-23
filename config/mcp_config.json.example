@@ -3,9 +3,9 @@
     "claude-context": {
       "command": "python",
       "args": ["-m", "src.mcp_server"],
-      "cwd": "/absolute/path/to/chatmcp",
+      "cwd": "/absolute/path/to/claude-context",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/chatmcp"
+        "PYTHONPATH": "/absolute/path/to/claude-context"
       }
     }
   }

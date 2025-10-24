@@ -1,7 +1,7 @@
 # Production Dependencies
-mcp==1.18.0
+mcp==1.19.0
 pydantic==2.12.3
-openai==2.6.0
+openai==2.6.1
 anthropic==0.71.0
 click==8.3.0
 python-dotenv==1.1.1

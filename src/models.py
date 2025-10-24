@@ -31,6 +31,8 @@ class ContextEntry(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     chatgpt_response: str | None = None
     claude_response: str | None = None
+    gemini_response: str | None = None
+    deepseek_response: str | None = None
 
 
 class ContextSearchResult(BaseModel):

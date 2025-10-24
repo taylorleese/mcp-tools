@@ -23,7 +23,7 @@ def get_storage() -> ContextStorage:
 
 @click.group()
 def main() -> None:
-    """Claude Code ↔ ChatGPT context sharing CLI."""
+    """Multi-AI context sharing CLI for Claude Code - compare insights from ChatGPT, Claude, Gemini, and DeepSeek."""
 
 
 @main.group()
@@ -217,6 +217,92 @@ def ask_claude(context_id: str, question: str | None) -> None:
         sys.exit(1)
 
 
+@context.command("ask-gemini")
+@click.argument("context_id")
+@click.option("--question", help="Specific question to ask (optional)")
+def ask_gemini(context_id: str, question: str | None) -> None:
+    """Ask Google Gemini a question about a context, or get a general analysis."""
+    storage = get_storage()
+    context = storage.get_context(context_id)
+
+    if not context:
+        click.echo(f"Error: Context {context_id} not found", err=True)
+        sys.exit(1)
+
+    if question:
+        click.echo(f"⏳ Asking Gemini: '{question}'")
+    else:
+        click.echo(f"⏳ Querying Gemini about '{context.title}'...")
+
+    try:
+        from context_manager.gemini_client import GeminiClient
+
+        gemini = GeminiClient()
+        response = gemini.get_second_opinion(context, question)
+
+        # Only save if it's a generic second opinion (no custom question)
+        if not question:
+            storage.update_gemini_response(context.id, response)
+
+        # Display response
+        click.echo("\n" + "=" * 60)
+        header = "Gemini's Answer:" if question else "Gemini's Analysis:"
+        click.echo(header)
+        click.echo("=" * 60)
+        click.echo(response)
+        click.echo("=" * 60)
+
+        if not question:
+            click.echo("\n✓ Response saved to context entry")
+
+    except Exception as e:
+        click.echo(f"\n✗ Error querying Gemini: {e}", err=True)
+        sys.exit(1)
+
+
+@context.command("ask-deepseek")
+@click.argument("context_id")
+@click.option("--question", help="Specific question to ask (optional)")
+def ask_deepseek(context_id: str, question: str | None) -> None:
+    """Ask DeepSeek a question about a context, or get a general analysis."""
+    storage = get_storage()
+    context = storage.get_context(context_id)
+
+    if not context:
+        click.echo(f"Error: Context {context_id} not found", err=True)
+        sys.exit(1)
+
+    if question:
+        click.echo(f"⏳ Asking DeepSeek: '{question}'")
+    else:
+        click.echo(f"⏳ Querying DeepSeek about '{context.title}'...")
+
+    try:
+        from context_manager.deepseek_client import DeepSeekClient
+
+        deepseek = DeepSeekClient()
+        response = deepseek.get_second_opinion(context, question)
+
+        # Only save if it's a generic second opinion (no custom question)
+        if not question:
+            storage.update_deepseek_response(context.id, response)
+
+        # Display response
+        click.echo("\n" + "=" * 60)
+        header = "DeepSeek's Answer:" if question else "DeepSeek's Analysis:"
+        click.echo(header)
+        click.echo("=" * 60)
+        click.echo(response)
+        click.echo("=" * 60)
+
+        if not question:
+            click.echo("\n✓ Response saved to context entry")
+
+    except Exception as e:
+        click.echo(f"\n✗ Error querying DeepSeek: {e}", err=True)
+        sys.exit(1)
+
+
 @context.command("list")
 @click.option("--type", "context_type", help="Filter by type")
 @click.option("--limit", default=20, help="Number of results")
@@ -232,10 +318,14 @@ def list_contexts(context_type: str | None, limit: int, offset: int) -> None:
 
     click.echo(f"\nFound {len(contexts)} contexts:\n")
     for ctx in contexts:
-        has_response = "✓" if ctx.chatgpt_response else "○"
+        gpt = "✓" if ctx.chatgpt_response else "○"
+        claude = "✓" if ctx.claude_response else "○"
+        gemini = "✓" if ctx.gemini_response else "○"
+        deepseek = "✓" if ctx.deepseek_response else "○"
         tags_str = f" [{', '.join(ctx.tags)}]" if ctx.tags else ""
         click.echo(
-            f"{has_response} [{ctx.type}] {ctx.title}{tags_str}\n   ID: {ctx.id}\n   {ctx.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"GPT:{gpt} Claude:{claude} Gemini:{gemini} DeepSeek:{deepseek} [{ctx.type}] {ctx.title}{tags_str}\n"
+            f"   ID: {ctx.id}\n   {ctx.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
 
 
@@ -254,10 +344,14 @@ def search(query_text: str, context_type: str | None, limit: int) -> None:
 
     click.echo(f"\nFound {len(contexts)} contexts matching '{query_text}':\n")
     for ctx in contexts:
-        has_response = "✓" if ctx.chatgpt_response else "○"
+        gpt = "✓" if ctx.chatgpt_response else "○"
+        claude = "✓" if ctx.claude_response else "○"
+        gemini = "✓" if ctx.gemini_response else "○"
+        deepseek = "✓" if ctx.deepseek_response else "○"
         tags_str = f" [{', '.join(ctx.tags)}]" if ctx.tags else ""
         click.echo(
-            f"{has_response} [{ctx.type}] {ctx.title}{tags_str}\n   ID: {ctx.id}\n   {ctx.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"GPT:{gpt} Claude:{claude} Gemini:{gemini} DeepSeek:{deepseek} [{ctx.type}] {ctx.title}{tags_str}\n"
+            f"   ID: {ctx.id}\n   {ctx.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
         )
 
 
@@ -304,6 +398,24 @@ def show(context_id: str) -> None:
         click.echo("ChatGPT's Response:")
         click.echo(f"{'=' * 60}")
         click.echo(context.chatgpt_response)
+
+    if context.claude_response:
+        click.echo(f"\n{'=' * 60}")
+        click.echo("Claude's Response:")
+        click.echo(f"{'=' * 60}")
+        click.echo(context.claude_response)
+
+    if context.gemini_response:
+        click.echo(f"\n{'=' * 60}")
+        click.echo("Gemini's Response:")
+        click.echo(f"{'=' * 60}")
+        click.echo(context.gemini_response)
+
+    if context.deepseek_response:
+        click.echo(f"\n{'=' * 60}")
+        click.echo("DeepSeek's Response:")
+        click.echo(f"{'=' * 60}")
+        click.echo(context.deepseek_response)
 
 
 @context.command("delete")

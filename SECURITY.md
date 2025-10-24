@@ -13,11 +13,15 @@ We release patches for security vulnerabilities for the following versions:
 
 We take the security of mcp-toolz seriously. If you believe you have found a security vulnerability, please report it to us as described below.
 
+For a list of disclosed security vulnerabilities, see our [GitHub Security Advisories](https://github.com/taylorleese/mcp-toolz/security/advisories).
+
 ### How to Report
 
-**Please do NOT report security vulnerabilities through public GitHub issues.**
+**Please do NOT report security vulnerabilities through public [GitHub issues](https://github.com/taylorleese/mcp-toolz/issues).**
 
 Instead, please report them via email to: **tleese22 [at] gmail [dot] com**
+
+Alternatively, you can use GitHub's private vulnerability reporting: https://github.com/taylorleese/mcp-toolz/security/advisories/new
 
 You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 
@@ -84,12 +88,20 @@ mcp-toolz implements the following security measures:
 
 We continuously monitor security through:
 
-- GitHub Dependabot alerts
-- GitHub Security Advisories
+- [GitHub Dependabot alerts](https://github.com/taylorleese/mcp-toolz/security/dependabot)
+- [GitHub Security Advisories](https://github.com/taylorleese/mcp-toolz/security/advisories)
+- [Code scanning alerts](https://github.com/taylorleese/mcp-toolz/security/code-scanning)
 - Pre-commit security checks
-- Dependency Review on all pull requests
+- [Dependency Review](https://github.com/taylorleese/mcp-toolz/security/dependabot) on all pull requests
 - Regular dependency updates
+- [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/taylorleese/mcp-toolz) monitoring
+
+## Additional Resources
+
+- [Project Documentation](https://github.com/taylorleese/mcp-toolz#readme)
+- [Contributing Guidelines](https://github.com/taylorleese/mcp-toolz/blob/main/CONTRIBUTING.md)
+- [License](https://github.com/taylorleese/mcp-toolz/blob/main/LICENSE)
 
 ## Comments on this Policy
 
-If you have suggestions on how this process could be improved, please submit a pull request or open an issue.
+If you have suggestions on how this process could be improved, please [submit a pull request](https://github.com/taylorleese/mcp-toolz/pulls) or [open an issue](https://github.com/taylorleese/mcp-toolz/issues).

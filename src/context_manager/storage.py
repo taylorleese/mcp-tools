@@ -35,7 +35,9 @@ class ContextStorage:
                     session_timestamp TEXT,
                     metadata TEXT,
                     chatgpt_response TEXT,
-                    claude_response TEXT
+                    claude_response TEXT,
+                    gemini_response TEXT,
+                    deepseek_response TEXT
                 )
             """
             )
@@ -45,6 +47,14 @@ class ContextStorage:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_project_path ON contexts(project_path)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_session_id ON contexts(session_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_session_timestamp ON contexts(session_timestamp)")
+
+            # Migration: Add gemini_response and deepseek_response columns if they don't exist
+            cursor = conn.execute("PRAGMA table_info(contexts)")
+            columns = [row[1] for row in cursor.fetchall()]
+            if "gemini_response" not in columns:
+                conn.execute("ALTER TABLE contexts ADD COLUMN gemini_response TEXT")
+            if "deepseek_response" not in columns:
+                conn.execute("ALTER TABLE contexts ADD COLUMN deepseek_response TEXT")
 
             # Todo snapshots table
             conn.execute(
@@ -77,8 +87,8 @@ class ContextStorage:
                 """
                 INSERT OR REPLACE INTO contexts
                 (id, timestamp, type, title, content, tags, project_path, session_id,
-                 session_timestamp, metadata, chatgpt_response, claude_response)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 session_timestamp, metadata, chatgpt_response, claude_response, gemini_response, deepseek_response)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     context.id,
@@ -93,6 +103,8 @@ class ContextStorage:
                     json.dumps(context.metadata),
                     context.chatgpt_response,
                     context.claude_response,
+                    context.gemini_response,
+                    context.deepseek_response,
                 ),
             )
             conn.commit()
@@ -182,6 +194,24 @@ class ContextStorage:
             )
             conn.commit()
 
+    def update_gemini_response(self, context_id: str, response: str) -> None:
+        """Update the Gemini response for a context."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE contexts SET gemini_response = ? WHERE id = ?",
+                (response, context_id),
+            )
+            conn.commit()
+
+    def update_deepseek_response(self, context_id: str, response: str) -> None:
+        """Update the DeepSeek response for a context."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE contexts SET deepseek_response = ? WHERE id = ?",
+                (response, context_id),
+            )
+            conn.commit()
+
     def delete_context(self, context_id: str) -> bool:
         """Delete a context by ID. Returns True if deleted, False if not found."""
         with sqlite3.connect(self.db_path) as conn:
@@ -234,6 +264,16 @@ class ContextStorage:
 
     def _row_to_context(self, row: sqlite3.Row) -> ContextEntry:
         """Convert a database row to a ContextEntry."""
+        # Handle optional fields that may not exist in older databases
+        try:
+            gemini_response = row["gemini_response"]
+        except (KeyError, IndexError):
+            gemini_response = None
+        try:
+            deepseek_response = row["deepseek_response"]
+        except (KeyError, IndexError):
+            deepseek_response = None
+
         return ContextEntry(
             id=row["id"],
             timestamp=datetime.fromisoformat(row["timestamp"]),
@@ -247,6 +287,8 @@ class ContextStorage:
             metadata=json.loads(row["metadata"]) if row["metadata"] else {},
             chatgpt_response=row["chatgpt_response"],
             claude_response=row["claude_response"],
+            gemini_response=gemini_response,
+            deepseek_response=deepseek_response,
         )
 
     # Todo snapshot methods

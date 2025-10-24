@@ -208,6 +208,50 @@ class TestMCPServerTools:
         assert result is not None
         assert "Mocked Claude response" in result[0].text
 
+    @patch("mcp_server.server.GeminiClient")
+    async def test_ask_gemini_tool(
+        self,
+        mock_gemini_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test the ask_gemini tool with mocked API."""
+        # Setup mock
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(return_value="Mocked Gemini response")
+        mock_gemini_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask Gemini
+        result = await mcp_server.call_tool("ask_gemini", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "Mocked Gemini response" in result[0].text
+
+    @patch("mcp_server.server.DeepSeekClient")
+    async def test_ask_deepseek_tool(
+        self,
+        mock_deepseek_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test the ask_deepseek tool with mocked API."""
+        # Setup mock
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(return_value="Mocked DeepSeek response")
+        mock_deepseek_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask DeepSeek
+        result = await mcp_server.call_tool("ask_deepseek", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "Mocked DeepSeek response" in result[0].text
+
 
 @pytest.mark.integration
 class TestMCPServerResources:

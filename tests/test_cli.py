@@ -293,6 +293,75 @@ class TestContextCommands:
 
         assert result.exit_code == 0
 
+    @patch("context_manager.gemini_client.genai.configure")
+    @patch("context_manager.gemini_client.genai.GenerativeModel")
+    def test_context_ask_gemini(
+        self,
+        mock_model: MagicMock,
+        mock_configure: MagicMock,
+        cli_runner: CliRunner,
+        temp_db_path: str,
+        sample_context: ContextEntry,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test ask-gemini command."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+
+        # Save context first
+        from context_manager.storage import ContextStorage
+
+        storage = ContextStorage(temp_db_path)
+        storage.save_context(sample_context)
+
+        # Mock Gemini client
+        mock_instance = MagicMock()
+        mock_response = MagicMock()
+        mock_response.text = "Mocked Gemini response"
+        mock_instance.generate_content.return_value = mock_response
+        mock_model.return_value = mock_instance
+
+        result = cli_runner.invoke(
+            main,
+            ["context", "ask-gemini", sample_context.id, "--question", "What is this?"],
+        )
+
+        assert result.exit_code == 0
+
+    @patch("context_manager.deepseek_client.OpenAI")
+    def test_context_ask_deepseek(
+        self,
+        mock_openai: MagicMock,
+        cli_runner: CliRunner,
+        temp_db_path: str,
+        sample_context: ContextEntry,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test ask-deepseek command."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+
+        # Save context first
+        from context_manager.storage import ContextStorage
+
+        storage = ContextStorage(temp_db_path)
+        storage.save_context(sample_context)
+
+        # Mock DeepSeek client
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Mocked DeepSeek response"
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai.return_value = mock_client
+
+        result = cli_runner.invoke(
+            main,
+            ["context", "ask-deepseek", sample_context.id, "--question", "What is this?"],
+        )
+
+        assert result.exit_code == 0
+
 
 class TestTodoCommands:
     """Test todo CLI commands."""

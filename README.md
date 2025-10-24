@@ -4,6 +4,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/taylorleese/mcp-toolz)](https://github.com/taylorleese/mcp-toolz/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/taylorleese/mcp-toolz)](https://github.com/taylorleese/mcp-toolz/commits/main)
 [![codecov](https://codecov.io/gh/taylorleese/mcp-toolz/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-toolz)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11358/badge)](https://www.bestpractices.dev/projects/11358)
 [![PyPI version](https://img.shields.io/pypi/v/mcp-toolz.svg)](https://pypi.org/project/mcp-toolz/)
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
@@ -13,7 +14,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-MCP server for Claude Code providing context management, todo persistence, and AI second opinions. Share contexts and todos across sessions, get feedback from ChatGPT or Claude, and access everything via MCP tools.
+MCP server for Claude Code providing context management, todo persistence, and multi-AI perspectives. Share contexts and todos across sessions, compare insights from ChatGPT, Claude, Gemini, and DeepSeek, and access everything via MCP tools.
 
 ## Features
 
@@ -21,7 +22,7 @@ MCP server for Claude Code providing context management, todo persistence, and A
 - **Session Continuity**: Never lose context when restarting Claude Code - restore "what was I working on last session"
 - **Project Organization**: Contexts and todos automatically organized by project directory
 - **Session Tracking**: Every Claude Code session gets a unique ID - track your work over time
-- **AI Second Opinions**: Get feedback from both ChatGPT (OpenAI) and Claude (Anthropic) on your code and decisions
+- **Multi-AI Perspectives**: Compare feedback from ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and DeepSeek on your code and decisions
 - **Context Types**: Save conversations, code snippets, architectural suggestions, or error traces
 - **Persistent Todos**: Save and restore your todo list across sessions - never forget where you left off
 - **Full-Text Search**: Find anything by content, tags, project, or session
@@ -56,9 +57,11 @@ pip install -e ".[dev]"
 ### Configuration
 
 ```bash
-# Set your API keys as environment variables
-export OPENAI_API_KEY=sk-...
-export ANTHROPIC_API_KEY=sk-ant-...
+# Set your API keys as environment variables (at least one required for AI features)
+export OPENAI_API_KEY=sk-...           # For ChatGPT
+export ANTHROPIC_API_KEY=sk-ant-...    # For Claude
+export GOOGLE_API_KEY=...              # For Gemini
+export DEEPSEEK_API_KEY=sk-...         # For DeepSeek
 
 # Or create a .env file (if installing from source)
 cp .env.example .env
@@ -126,9 +129,11 @@ The MCP server works NOW with Claude Code and provides these tools:
 - `context_list` - List recent
 - `context_delete` - Delete by ID
 
-**AI Opinion Tools:**
-- `ask_chatgpt` - Ask ChatGPT about a context (supports custom questions)
-- `ask_claude` - Ask Claude about a context (supports custom questions)
+**Multi-AI Perspective Tools:**
+- `ask_chatgpt` - Get ChatGPT's analysis of a context (supports custom questions)
+- `ask_claude` - Get Claude's analysis of a context (supports custom questions)
+- `ask_gemini` - Get Gemini's analysis of a context (supports custom questions)
+- `ask_deepseek` - Get DeepSeek's analysis of a context (supports custom questions)
 
 **Todo Tools:**
 - `todo_search` - Search snapshots
@@ -150,22 +155,24 @@ When saving contexts through MCP tools, they are automatically tagged with:
 
 Here are practical examples of how to use mcp-toolz in Claude Code:
 
-### Example 1: Get a Second Opinion on Architecture Decisions
+### Example 1: Get Multiple AI Perspectives on Architecture Decisions
 
 **Prompt:**
 ```
 I'm deciding between using Redis or Memcached for caching user sessions.
-Save this as a context and ask ChatGPT for a second opinion.
+Save this as a context and ask ChatGPT for their analysis.
 Use tags: caching, redis, memcached, architecture
 ```
 
 **What happens:**
 1. Claude Code uses `context_save` to save your architectural decision
 2. Then uses `ask_chatgpt` to get ChatGPT's perspective
-3. You get both AI opinions to inform your decision
+3. You can compare multiple AI perspectives to inform your decision
 
 **Follow-up prompts:**
 - "Ask Claude the same question for comparison"
+- "Ask Gemini for another perspective"
+- "What does DeepSeek think about this?"
 - "Search my contexts tagged with 'architecture'"
 
 ### Example 2: Session Continuity - Never Lose Your Place
@@ -195,7 +202,7 @@ What was I working on yesterday? Restore my todos.
 ```
 I'm getting "TypeError: Cannot read property 'map' of undefined" in my React component.
 The error occurs in UserList.jsx when rendering the users array.
-Save this as an error context and ask both ChatGPT and Claude for debugging suggestions.
+Save this as an error context and ask ChatGPT, Claude, and Gemini for debugging suggestions.
 Tags: react, debugging, javascript
 ```
 
@@ -203,7 +210,8 @@ Tags: react, debugging, javascript
 1. Claude Code uses `context_save` to record the error
 2. Uses `ask_chatgpt` to get OpenAI's debugging approach
 3. Uses `ask_claude` to get Anthropic's perspective
-4. You see two different debugging strategies
+4. Uses `ask_gemini` for Google's analysis
+5. You can compare different debugging strategies from multiple AI models
 
 **Follow-up prompts:**
 - "Search for other contexts tagged with 'react' bugs"
@@ -424,9 +432,9 @@ Or in your MCP config:
 
 ## Common Workflows
 
-### Get a Second Opinion
+### Get Multiple AI Perspectives
 
-When Claude Code suggests an implementation, get another AI's perspective:
+When evaluating an implementation, compare insights from different AI models:
 
 ```bash
 ./mcp-toolz context save-and-query \
@@ -500,11 +508,15 @@ The AI's response appears immediately in your console. You can also ask specific
 # Required (at least one for AI features)
 OPENAI_API_KEY=sk-...                              # Your OpenAI API key
 ANTHROPIC_API_KEY=sk-ant-...                       # Your Anthropic API key
+GOOGLE_API_KEY=...                                 # Your Google API key (for Gemini)
+DEEPSEEK_API_KEY=sk-...                            # Your DeepSeek API key
 
 # Optional
-MCP_TOOLZ_DB_PATH=~/.mcp-toolz/contexts.db         # Shared database location (default)
-MCP_TOOLZ_MODEL=gpt-5                              # OpenAI model (default: gpt-5)
-MCP_TOOLZ_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
+MCP_TOOLZ_DB_PATH=~/.mcp-toolz/contexts.db                    # Shared database location (default)
+MCP_TOOLZ_MODEL=gpt-5                                         # OpenAI model (default: gpt-5)
+MCP_TOOLZ_CLAUDE_MODEL=claude-sonnet-4-5-20250929             # Claude model
+MCP_TOOLZ_GEMINI_MODEL=gemini-2.0-flash-thinking-exp-01-21   # Gemini model
+MCP_TOOLZ_DEEPSEEK_MODEL=deepseek-chat                        # DeepSeek model
 ```
 
 ## Troubleshooting

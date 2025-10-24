@@ -11,6 +11,8 @@ from mcp.types import Resource, TextContent, Tool
 from pydantic import AnyUrl
 
 from context_manager.anthropic_client import ClaudeClient
+from context_manager.deepseek_client import DeepSeekClient
+from context_manager.gemini_client import GeminiClient
 from context_manager.openai_client import ChatGPTClient
 from context_manager.storage import ContextStorage
 from models import ContextEntry
@@ -343,6 +345,40 @@ class ContextMCPServer:
                     "required": ["context_id"],
                 },
             ),
+            Tool(
+                name="ask_gemini",
+                description="Ask Google Gemini a question about a context entry, or get a general second opinion",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "context_id": {"type": "string", "description": "Context ID to ask about"},
+                        "question": {
+                            "type": "string",
+                            "description": (
+                                "Optional specific question to ask about the context. If not provided, gets a general second opinion."
+                            ),
+                        },
+                    },
+                    "required": ["context_id"],
+                },
+            ),
+            Tool(
+                name="ask_deepseek",
+                description="Ask DeepSeek a question about a context entry, or get a general second opinion",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "context_id": {"type": "string", "description": "Context ID to ask about"},
+                        "question": {
+                            "type": "string",
+                            "description": (
+                                "Optional specific question to ask about the context. If not provided, gets a general second opinion."
+                            ),
+                        },
+                    },
+                    "required": ["context_id"],
+                },
+            ),
         ]
 
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> list[TextContent]:
@@ -530,6 +566,46 @@ class ContextMCPServer:
             except ValueError as e:
                 return [TextContent(type="text", text=f"Error: {e}")]
 
+        if name == "ask_gemini":
+            context_id = arguments["context_id"]
+            question = arguments.get("question")
+            context = self.storage.get_context(context_id)
+            if not context:
+                return [TextContent(type="text", text=f"Context {context_id} not found")]
+
+            try:
+                gemini_client = GeminiClient()
+                response = gemini_client.get_second_opinion(context, question)
+
+                # Only save to database if it's a generic second opinion (no custom question)
+                if not question:
+                    self.storage.update_gemini_response(context_id, response)
+
+                header = "Gemini's Answer:" if question else "Gemini's Opinion:"
+                return [TextContent(type="text", text=f"{header}\n\n{response}")]
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Error: {e}")]
+
+        if name == "ask_deepseek":
+            context_id = arguments["context_id"]
+            question = arguments.get("question")
+            context = self.storage.get_context(context_id)
+            if not context:
+                return [TextContent(type="text", text=f"Context {context_id} not found")]
+
+            try:
+                deepseek_client = DeepSeekClient()
+                response = deepseek_client.get_second_opinion(context, question)
+
+                # Only save to database if it's a generic second opinion (no custom question)
+                if not question:
+                    self.storage.update_deepseek_response(context_id, response)
+
+                header = "DeepSeek's Answer:" if question else "DeepSeek's Opinion:"
+                return [TextContent(type="text", text=f"{header}\n\n{response}")]
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Error: {e}")]
+
         return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
     def _format_contexts_response(self, contexts: list[ContextEntry]) -> str:
@@ -541,11 +617,11 @@ class ContextMCPServer:
         for ctx in contexts:
             chatgpt_icon = "✓" if ctx.chatgpt_response else "○"
             claude_icon = "✓" if ctx.claude_response else "○"
+            gemini_icon = "✓" if ctx.gemini_response else "○"
+            deepseek_icon = "✓" if ctx.deepseek_response else "○"
             tags_str = f" [{', '.join(ctx.tags)}]" if ctx.tags else ""
-            lines.append(
-                f"GPT:{chatgpt_icon} Claude:{claude_icon} [{ctx.type}] {ctx.title}{tags_str}\n"
-                f"   ID: {ctx.id}\n   Timestamp: {ctx.timestamp.isoformat()}\n"
-            )
+            ai_icons = f"GPT:{chatgpt_icon} Claude:{claude_icon} Gemini:{gemini_icon} DeepSeek:{deepseek_icon}"
+            lines.append(f"{ai_icons} [{ctx.type}] {ctx.title}{tags_str}\n   ID: {ctx.id}\n   Timestamp: {ctx.timestamp.isoformat()}\n")
         return "\n".join(lines)
 
     def _format_context_detail(self, context: Any) -> str:
@@ -584,6 +660,12 @@ class ContextMCPServer:
 
         if context.claude_response:
             lines.append(f"\n## Claude's Previous Response:\n{context.claude_response}")
+
+        if context.gemini_response:
+            lines.append(f"\n## Gemini's Previous Response:\n{context.gemini_response}")
+
+        if context.deepseek_response:
+            lines.append(f"\n## DeepSeek's Previous Response:\n{context.deepseek_response}")
 
         return "\n".join(lines)
 

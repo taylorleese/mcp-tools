@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-tools"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for Claude Code providing context management, todo persistence, and AI second opinions"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [
-    {name = "Taylor Leese", email = "taylorleese@users.noreply.github.com"}
+    {name = "Taylor Leese", email = "tleese22@gmail.com"}
 ]
 keywords = [
     "mcp",

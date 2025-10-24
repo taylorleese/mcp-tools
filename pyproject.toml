@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "MCP server for Claude Code providing context management, todo persistence, and AI second opinions"
 readme = "README.md"
 requires-python = ">=3.13"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Taylor Leese", email = "taylorleese@users.noreply.github.com"}
 ]
@@ -25,7 +25,6 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",

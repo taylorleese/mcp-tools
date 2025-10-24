@@ -22,3 +22,7 @@ types-aiofiles==24.1.0.20240626
 
 # Pre-commit
 pre-commit==4.3.0
+
+# Publishing
+build==1.2.2.post1
+twine==6.1.0

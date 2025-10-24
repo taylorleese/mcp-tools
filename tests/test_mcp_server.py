@@ -258,3 +258,178 @@ class TestMCPServerResources:
 
         assert result is not None
         assert isinstance(result, str)
+
+    @pytest.mark.asyncio
+    async def test_context_get_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test getting a non-existent context."""
+        result = await mcp_server.call_tool("context_get", {"context_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_delete_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test deleting a non-existent context."""
+        result = await mcp_server.call_tool("context_delete", {"context_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_save_with_suggestion(self, mcp_server: ContextMCPServer) -> None:
+        """Test saving a suggestion-type context."""
+        result = await mcp_server.call_tool(
+            "context_save",
+            {
+                "type": "suggestion",
+                "title": "Test Suggestion",
+                "content": "Use type hints",
+            },
+        )
+
+        assert result is not None
+        assert "saved" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_save_with_error(self, mcp_server: ContextMCPServer) -> None:
+        """Test saving an error-type context."""
+        result = await mcp_server.call_tool(
+            "context_save",
+            {
+                "type": "error",
+                "title": "Test Error",
+                "content": "TypeError: expected str",
+            },
+        )
+
+        assert result is not None
+        assert "saved" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_save_with_conversation(self, mcp_server: ContextMCPServer) -> None:
+        """Test saving a conversation-type context."""
+        result = await mcp_server.call_tool(
+            "context_save",
+            {
+                "type": "conversation",
+                "title": "Test Conversation",
+                "content": "Hello, how are you?",
+            },
+        )
+
+        assert result is not None
+        assert "saved" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_save_with_session_context_id(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
+        """Test saving context with session_context_id."""
+        # First save a parent context
+        mcp_server.storage.save_context(sample_context)
+
+        result = await mcp_server.call_tool(
+            "context_save",
+            {
+                "type": "code",
+                "title": "Child Context",
+                "content": "Related code",
+                "session_context_id": sample_context.id,
+            },
+        )
+
+        assert result is not None
+        assert "saved" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_context_search_by_tags(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
+        """Test searching contexts by tags."""
+        # Save a context with tags
+        sample_context.tags = ["python", "test"]
+        mcp_server.storage.save_context(sample_context)
+
+        result = await mcp_server.call_tool("context_search", {"tags": ["python"], "limit": 10})
+
+        assert result is not None
+        assert len(result) > 0
+
+    @pytest.mark.asyncio
+    async def test_context_search_without_query(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
+        """Test context_search without query or tags (should list all)."""
+        mcp_server.storage.save_context(sample_context)
+
+        result = await mcp_server.call_tool("context_search", {"limit": 10})
+
+        assert result is not None
+        assert len(result) > 0
+
+    @pytest.mark.asyncio
+    async def test_todo_get_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test getting a non-existent todo snapshot."""
+        result = await mcp_server.call_tool("todo_get", {"snapshot_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_todo_delete_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test deleting a non-existent todo snapshot."""
+        result = await mcp_server.call_tool("todo_delete", {"snapshot_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_todo_restore_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test restoring non-existent todo snapshot."""
+        result = await mcp_server.call_tool("todo_restore", {})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower() or "no todo" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_ask_chatgpt_context_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test ask_chatgpt with non-existent context."""
+        result = await mcp_server.call_tool("ask_chatgpt", {"context_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_ask_claude_context_not_found(self, mcp_server: ContextMCPServer) -> None:
+        """Test ask_claude with non-existent context."""
+        result = await mcp_server.call_tool("ask_claude", {"context_id": "nonexistent"})
+
+        assert result is not None
+        assert "not found" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_read_unknown_resource(self, mcp_server: ContextMCPServer) -> None:
+        """Test reading an unknown resource."""
+        from pydantic import AnyUrl
+
+        result = await mcp_server.read_resource(AnyUrl("mcp-toolz://unknown/path"))
+
+        assert result is not None
+        assert "unknown" in result.lower()
+
+    @pytest.mark.asyncio
+    async def test_read_recent_todos_resource(self, mcp_server: ContextMCPServer, sample_todo_snapshot: TodoListSnapshot) -> None:
+        """Test reading recent todos resource."""
+        mcp_server.storage.save_todo_snapshot(sample_todo_snapshot)
+
+        from pydantic import AnyUrl
+
+        result = await mcp_server.read_resource(AnyUrl("mcp-toolz://todos/recent"))
+
+        assert result is not None
+        assert isinstance(result, str)
+
+    @pytest.mark.asyncio
+    async def test_read_active_todos_no_snapshot(self, mcp_server: ContextMCPServer) -> None:
+        """Test reading active todos when no snapshot exists."""
+        with patch("os.getcwd", return_value="/nonexistent"):
+            from pydantic import AnyUrl
+
+            result = await mcp_server.read_resource(AnyUrl("mcp-toolz://todos/active"))
+
+        assert result is not None
+        assert "no active" in result.lower() or "not found" in result.lower()

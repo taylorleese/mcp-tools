@@ -1,10 +1,12 @@
 # MCP Toolz
 
 [![CI](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml/badge.svg)](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml)
+[![GitHub issues](https://img.shields.io/github/issues/taylorleese/mcp-toolz)](https://github.com/taylorleese/mcp-toolz/issues)
 [![codecov](https://codecov.io/gh/taylorleese/mcp-toolz/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-toolz)
 [![PyPI version](https://img.shields.io/pypi/v/mcp-toolz.svg)](https://pypi.org/project/mcp-toolz/)
 
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![MCP](https://img.shields.io/badge/MCP-1.19.0-blue)](https://modelcontextprotocol.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/taylorleese/mcp-toolz/blob/main/.github/dependabot.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

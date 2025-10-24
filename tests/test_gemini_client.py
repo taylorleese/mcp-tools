@@ -25,7 +25,6 @@ class TestGeminiClient:
     def test_init_no_api_key(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test initialization fails without API key."""
         monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
-        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         with pytest.raises(ValueError, match="Google API key"):
             GeminiClient()
 

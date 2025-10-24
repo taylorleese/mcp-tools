@@ -12,9 +12,9 @@ class GeminiClient:
 
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
         """Initialize the Gemini client."""
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            msg = "Google API key must be provided or set in GOOGLE_API_KEY or GEMINI_API_KEY environment variable"
+            msg = "Google API key must be provided or set in GOOGLE_API_KEY environment variable"
             raise ValueError(msg)
 
         self.model_name: str = model or os.getenv("MCP_TOOLZ_GEMINI_MODEL") or "gemini-2.0-flash-thinking-exp-01-21"

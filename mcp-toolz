@@ -15,9 +15,13 @@ export PYTHONPATH="$(pwd)/src"
 # Unset environment variables to ensure .env file is used
 unset OPENAI_API_KEY
 unset ANTHROPIC_API_KEY
+unset GOOGLE_API_KEY
+unset DEEPSEEK_API_KEY
 unset MCP_TOOLZ_DB_PATH
 unset MCP_TOOLZ_MODEL
 unset MCP_TOOLZ_CLAUDE_MODEL
+unset MCP_TOOLZ_GEMINI_MODEL
+unset MCP_TOOLZ_DEEPSEEK_MODEL
 
 # Run the CLI
 python3 -m context_manager "$@"

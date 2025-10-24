@@ -64,7 +64,7 @@ clean:
 # Publishing targets
 build: clean
 	@echo "Building distribution packages..."
-	python -m build
+	python3 -m build
 	@echo "✅ Built packages in dist/"
 
 publish-test: build

@@ -1,5 +1,12 @@
 # MCP Tools
 
+[![CI](https://github.com/taylorleese/mcp-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/taylorleese/mcp-tools/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/taylorleese/mcp-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-tools)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 MCP server for Claude Code providing context management, todo persistence, and AI second opinions. Share contexts and todos across sessions, get feedback from ChatGPT or Claude, and access everything via MCP tools.
 
 ## Features

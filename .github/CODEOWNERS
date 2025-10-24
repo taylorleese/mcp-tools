@@ -1,0 +1,38 @@
+# Code Owners for mcp-toolz
+#
+# These owners will be the default reviewers for everything in the repo.
+# Unless a later match takes precedence, @taylorleese will be requested
+# for review when someone opens a pull request.
+#
+# Learn more about CODEOWNERS:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @taylorleese
+
+# Core Python code
+/src/ @taylorleese
+/tests/ @taylorleese
+
+# MCP Server implementation
+/src/mcp_server/ @taylorleese
+
+# AI client implementations
+/src/context_manager/*_client.py @taylorleese
+
+# Configuration files
+*.toml @taylorleese
+*.json @taylorleese
+*.yaml @taylorleese
+*.yml @taylorleese
+
+# Documentation
+*.md @taylorleese
+/docs/ @taylorleese
+
+# GitHub workflows and configuration
+/.github/ @taylorleese
+
+# Security-related files
+/SECURITY.md @taylorleese
+/.github/workflows/dependency-review.yml @taylorleese

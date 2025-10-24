@@ -7,6 +7,7 @@ updates:
       interval: "weekly"
       day: "monday"
     target-branch: "main"
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "python"
@@ -22,6 +23,15 @@ updates:
       python-dependencies:
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Separate group for major version updates (require more attention)
+      python-major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
 
   # Docker base image updates
   - package-ecosystem: "docker"
@@ -30,6 +40,7 @@ updates:
       interval: "weekly"
       day: "monday"
     target-branch: "main"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "docker"
@@ -44,9 +55,14 @@ updates:
       interval: "weekly"
       day: "monday"
     target-branch: "main"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
     commit-message:
       prefix: "deps"
       include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

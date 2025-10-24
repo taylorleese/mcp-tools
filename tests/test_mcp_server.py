@@ -226,8 +226,8 @@ class TestMCPServerResources:
 
         assert len(resources) >= 4
         resource_uris = [str(r.uri) for r in resources]
-        assert "mcp-tools://contexts/project/recent" in resource_uris
-        assert "mcp-tools://todos/active" in resource_uris
+        assert "mcp-toolz://contexts/project/recent" in resource_uris
+        assert "mcp-toolz://todos/active" in resource_uris
 
     @pytest.mark.asyncio
     async def test_read_recent_contexts_resource(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
@@ -239,7 +239,7 @@ class TestMCPServerResources:
         with patch("os.getcwd", return_value=sample_context.project_path):
             from pydantic import AnyUrl
 
-            result = await mcp_server.read_resource(AnyUrl("mcp-tools://contexts/project/recent"))
+            result = await mcp_server.read_resource(AnyUrl("mcp-toolz://contexts/project/recent"))
 
         assert result is not None
         assert isinstance(result, str)
@@ -254,7 +254,7 @@ class TestMCPServerResources:
         with patch("os.getcwd", return_value=sample_todo_snapshot.project_path):
             from pydantic import AnyUrl
 
-            result = await mcp_server.read_resource(AnyUrl("mcp-tools://todos/active"))
+            result = await mcp_server.read_resource(AnyUrl("mcp-toolz://todos/active"))
 
         assert result is not None
         assert isinstance(result, str)

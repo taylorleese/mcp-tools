@@ -84,11 +84,11 @@ publish: test lint build
 		git push origin v$$VERSION; \
 		echo "Creating GitHub release v$$VERSION..."; \
 		gh release create v$$VERSION dist/* --generate-notes; \
-		echo "Publishing to PyPI..."; \
-		twine upload dist/*; \
-		echo "✅ Published v$$VERSION to PyPI and GitHub!"; \
-		echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/"; \
+		echo "GitHub Actions workflow will publish to PyPI automatically..."; \
+		echo "✅ Released v$$VERSION! GitHub Actions publishing to PyPI..."; \
+		echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"; \
 		echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"; \
+		echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available shortly)"; \
 	else \
 		echo "❌ Publish cancelled"; \
 		exit 1; \
@@ -102,8 +102,8 @@ publish-force: test lint build
 	git push origin v$$VERSION; \
 	echo "Creating GitHub release v$$VERSION..."; \
 	gh release create v$$VERSION dist/* --generate-notes; \
-	echo "Publishing to PyPI..."; \
-	twine upload dist/*; \
-	echo "✅ Published v$$VERSION to PyPI and GitHub!"; \
-	echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/"; \
-	echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"
+	echo "GitHub Actions workflow will publish to PyPI automatically..."; \
+	echo "✅ Released v$$VERSION! GitHub Actions publishing to PyPI..."; \
+	echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"; \
+	echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"; \
+	echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available shortly)"

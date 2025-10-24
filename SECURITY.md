@@ -10,7 +10,7 @@ We release patches for security vulnerabilities for the following versions:
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in mcp-tools, please report it by emailing **tleese22 [at] gmail [dot] com** rather than opening a public issue.
+If you discover a security vulnerability in mcp-toolz, please report it by emailing **tleese22 [at] gmail [dot] com** rather than opening a public issue.
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
@@ -36,11 +36,11 @@ When reporting a vulnerability, please include:
 
 ## Security Best Practices
 
-When using mcp-tools:
+When using mcp-toolz:
 
 1. **API Keys**: Never commit API keys to version control. Always use environment variables (`.env` file)
 2. **Database Security**: Ensure your `contexts.db` file has appropriate permissions if it contains sensitive information
-3. **Updates**: Keep mcp-tools and its dependencies up to date to receive the latest security patches
+3. **Updates**: Keep mcp-toolz and its dependencies up to date to receive the latest security patches
 
 ## Dependencies
 

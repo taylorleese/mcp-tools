@@ -21,9 +21,9 @@ class ContextMCPServer:
 
     def __init__(self) -> None:
         """Initialize the MCP server."""
-        self.server = Server("mcp-tools")
+        self.server = Server("mcp-toolz")
         # Use shared database location in home directory so all projects share the same data
-        db_path = os.path.expanduser(os.getenv("MCP_TOOLS_DB_PATH", "~/.mcp-tools/contexts.db"))
+        db_path = os.path.expanduser(os.getenv("MCP_TOOLS_DB_PATH", "~/.mcp-toolz/contexts.db"))
         self.storage = ContextStorage(db_path)
 
         # Generate session ID for this MCP server instance
@@ -41,26 +41,26 @@ class ContextMCPServer:
         return [
             # Project-based context resources
             Resource(
-                uri=AnyUrl("mcp-tools://contexts/project/recent"),
+                uri=AnyUrl("mcp-toolz://contexts/project/recent"),
                 name="Recent Project Contexts",
                 description="Recent contexts for current project",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://contexts/project/sessions"),
+                uri=AnyUrl("mcp-toolz://contexts/project/sessions"),
                 name="Project Sessions",
                 description="List of recent Claude Code sessions for current project",
                 mimeType="application/json",
             ),
             # Todo resources
             Resource(
-                uri=AnyUrl("mcp-tools://todos/recent"),
+                uri=AnyUrl("mcp-toolz://todos/recent"),
                 name="Recent Todo Snapshots",
                 description="Last 20 todo snapshots across all projects",
                 mimeType="application/json",
             ),
             Resource(
-                uri=AnyUrl("mcp-tools://todos/active"),
+                uri=AnyUrl("mcp-toolz://todos/active"),
                 name="Active Todo Snapshot",
                 description="Active todo snapshot for current project",
                 mimeType="application/json",
@@ -73,25 +73,25 @@ class ContextMCPServer:
         project_path = os.getcwd()
 
         # Project-based context resources
-        if uri_str == "mcp-tools://contexts/project/recent":
+        if uri_str == "mcp-toolz://contexts/project/recent":
             contexts = self.storage.list_contexts(project_path=project_path, limit=20)
             return self._format_contexts_response(contexts)
 
-        if uri_str == "mcp-tools://contexts/project/sessions":
+        if uri_str == "mcp-toolz://contexts/project/sessions":
             sessions = self.storage.list_sessions(project_path, limit=10)
             return self._format_sessions_response(sessions)
 
-        if uri_str.startswith("mcp-tools://contexts/session/"):
+        if uri_str.startswith("mcp-toolz://contexts/session/"):
             session_id = uri_str.split("/")[-1]
             contexts = self.storage.get_session_contexts(session_id)
             return self._format_contexts_response(contexts)
 
         # Todo resources
-        if uri_str == "mcp-tools://todos/recent":
+        if uri_str == "mcp-toolz://todos/recent":
             snapshots = self.storage.list_todo_snapshots(limit=20)
             return self._format_todo_snapshots_response(snapshots)
 
-        if uri_str == "mcp-tools://todos/active":
+        if uri_str == "mcp-toolz://todos/active":
             snapshot = self.storage.get_active_todo_snapshot(project_path)
             if not snapshot:
                 return f"No active todo snapshot found for project: {project_path}"
@@ -599,7 +599,7 @@ class ContextMCPServer:
             lines.append(
                 f"Session: {session_time.strftime('%Y-%m-%d %I:%M %p')} ({context_count} contexts)\n"
                 f"   Session ID: {session['session_id']}\n"
-                f"   Resource: mcp-tools://contexts/session/{session['session_id']}\n"
+                f"   Resource: mcp-toolz://contexts/session/{session['session_id']}\n"
             )
         return "\n".join(lines)
 

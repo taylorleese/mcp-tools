@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format clean build publish-test publish
+.PHONY: help install install-dev test test-cov lint format clean build publish-test publish publish-force
 
 # Default target
 help:
@@ -12,7 +12,8 @@ help:
 	@echo "  make clean        - Remove generated files and caches"
 	@echo "  make build        - Build distribution packages"
 	@echo "  make publish-test - Publish to TestPyPI"
-	@echo "  make publish      - Publish to PyPI (requires tests to pass)"
+	@echo "  make publish      - Publish to PyPI and GitHub release (requires tests to pass)"
+	@echo "  make publish-force - Publish to PyPI and GitHub release without confirmation"
 
 # Installation targets
 install:
@@ -70,17 +71,39 @@ publish-test: build
 	@echo "Publishing to TestPyPI..."
 	twine upload --repository testpypi dist/*
 	@echo "✅ Published to TestPyPI!"
-	@echo "Install with: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-tools"
+	@echo "Install with: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
 
 publish: test lint build
-	@echo "Publishing to PyPI..."
-	@read -p "Are you sure you want to publish to PyPI? [y/N] " -n 1 -r; \
+	@echo "Publishing to PyPI and GitHub..."
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
+	read -p "Are you sure you want to publish v$$VERSION to PyPI and GitHub? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		echo "Creating git tag v$$VERSION..."; \
+		git tag -a v$$VERSION -m "Release v$$VERSION"; \
+		git push origin v$$VERSION; \
+		echo "Creating GitHub release v$$VERSION..."; \
+		gh release create v$$VERSION dist/* --generate-notes; \
+		echo "Publishing to PyPI..."; \
 		twine upload dist/*; \
-		echo "✅ Published to PyPI!"; \
-		echo "Install with: pip install mcp-tools"; \
+		echo "✅ Published v$$VERSION to PyPI and GitHub!"; \
+		echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/"; \
+		echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"; \
 	else \
 		echo "❌ Publish cancelled"; \
 		exit 1; \
 	fi
+
+publish-force: test lint build
+	@echo "Publishing to PyPI and GitHub (no confirmation)..."
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
+	echo "Creating git tag v$$VERSION..."; \
+	git tag -a v$$VERSION -m "Release v$$VERSION"; \
+	git push origin v$$VERSION; \
+	echo "Creating GitHub release v$$VERSION..."; \
+	gh release create v$$VERSION dist/* --generate-notes; \
+	echo "Publishing to PyPI..."; \
+	twine upload dist/*; \
+	echo "✅ Published v$$VERSION to PyPI and GitHub!"; \
+	echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/"; \
+	echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"

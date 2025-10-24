@@ -1,7 +1,7 @@
-# MCP Tools
+# MCP Toolz
 
-[![CI](https://github.com/taylorleese/mcp-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/taylorleese/mcp-tools/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/taylorleese/mcp-tools/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-tools)
+[![CI](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml/badge.svg)](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/taylorleese/mcp-toolz/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-toolz)
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -48,14 +48,14 @@ cp .env.example .env
 
 ### MCP Server Setup (Recommended)
 
-The primary way to use mcp-tools is via the MCP server in Claude Code:
+The primary way to use mcp-toolz is via the MCP server in Claude Code:
 
 1. **Add to Claude Code settings** (add this JSON to your Claude Code MCP settings):
 
 ```json
 {
   "mcpServers": {
-    "mcp-tools": {
+    "mcp-toolz": {
       "command": "python",
       "args": ["-m", "mcp_server"],
       "cwd": "/absolute/path/to/mcp-tools",
@@ -114,7 +114,7 @@ When saving contexts through MCP tools, they are automatically tagged with:
 
 ## Usage Examples
 
-Here are practical examples of how to use mcp-tools in Claude Code:
+Here are practical examples of how to use mcp-toolz in Claude Code:
 
 ### Example 1: Get a Second Opinion on Architecture Decisions
 
@@ -223,20 +223,20 @@ Search for contexts about oauth and show me what I saved.
 
 ## Sharing Contexts Between Agents
 
-mcp-tools makes it easy to share contexts and todos across multiple Claude Code sessions or agents.
+mcp-toolz makes it easy to share contexts and todos across multiple Claude Code sessions or agents.
 
 ### MCP Resources (Passive Discovery)
 
 Claude Code can automatically discover and read contexts/todos via MCP resources:
 
 **Context Resources:**
-- `mcp-tools://contexts/project/recent` - Recent contexts for current project
-- `mcp-tools://contexts/project/sessions` - List of recent Claude Code sessions for current project
-- `mcp-tools://contexts/session/{session_id}` - All contexts from a specific session
+- `mcp-toolz://contexts/project/recent` - Recent contexts for current project
+- `mcp-toolz://contexts/project/sessions` - List of recent Claude Code sessions for current project
+- `mcp-toolz://contexts/session/{session_id}` - All contexts from a specific session
 
 **Todo Resources:**
-- `mcp-tools://todos/recent` - Last 20 todo snapshots (all projects)
-- `mcp-tools://todos/active` - Active todos for current working directory
+- `mcp-toolz://todos/recent` - Last 20 todo snapshots (all projects)
+- `mcp-toolz://todos/active` - Active todos for current working directory
 
 **Session Tracking:**
 Each Claude Code session automatically gets a unique session ID. All contexts saved during that session are tagged with:
@@ -250,33 +250,33 @@ Resources are read-only views into the shared database. Claude Code can discover
 
 ### Shared Database Setup
 
-**By default**, mcp-tools stores all data in `~/.mcp-tools/contexts.db`, which is automatically shared across all projects on the same machine. No additional configuration needed!
+**By default**, mcp-toolz stores all data in `~/.mcp-toolz/contexts.db`, which is automatically shared across all projects on the same machine. No additional configuration needed!
 
 **For advanced use cases** (syncing across multiple machines via Dropbox, iCloud, etc.):
 
 1. **Choose a synced location** for the database:
 ```bash
 # Example: Use a synced folder (Dropbox, iCloud, network drive)
-mkdir -p ~/Dropbox/mcp-tools-shared
+mkdir -p ~/Dropbox/mcp-toolz-shared
 ```
 
 2. **Update `.env` file** or MCP config to point to the synced database:
 ```bash
 # In .env file
-MCP_TOOLS_DB_PATH=~/Dropbox/mcp-tools-shared/contexts.db
+MCP_TOOLS_DB_PATH=~/Dropbox/mcp-toolz-shared/contexts.db
 ```
 
 Or in your MCP config:
 ```json
 {
   "mcpServers": {
-    "mcp-tools": {
+    "mcp-toolz": {
       "command": "python",
       "args": ["-m", "mcp_server"],
       "cwd": "/absolute/path/to/mcp-tools",
       "env": {
         "PYTHONPATH": "/absolute/path/to/mcp-tools/src",
-        "MCP_TOOLS_DB_PATH": "/Users/you/Dropbox/mcp-tools-shared/contexts.db"
+        "MCP_TOOLS_DB_PATH": "/Users/you/Dropbox/mcp-toolz-shared/contexts.db"
       }
     }
   }
@@ -468,7 +468,7 @@ OPENAI_API_KEY=sk-...                              # Your OpenAI API key
 ANTHROPIC_API_KEY=sk-ant-...                       # Your Anthropic API key
 
 # Optional
-MCP_TOOLS_DB_PATH=~/.mcp-tools/contexts.db         # Shared database location (default)
+MCP_TOOLS_DB_PATH=~/.mcp-toolz/contexts.db         # Shared database location (default)
 MCP_TOOLS_MODEL=gpt-5                              # OpenAI model (default: gpt-5)
 MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ```
@@ -496,7 +496,7 @@ MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ## Project Structure
 
 ```
-mcp-tools/
+mcp-toolz/
 ├── src/
 │   ├── mcp_server/          # MCP server for Claude Code
 │   │   └── server.py        # MCP tools and resources
@@ -519,7 +519,7 @@ mcp-tools/
 
 ```bash
 # Clone and install
-git clone https://github.com/taylorleese/mcp-tools.git
+git clone https://github.com/taylorleese/mcp-toolz.git
 cd mcp-tools
 python3.13 -m venv venv
 source venv/bin/activate

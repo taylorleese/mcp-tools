@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
-  "name": "io.github.taylorleese/mcp-tools",
+  "name": "io.github.taylorleese/mcp-toolz",
   "description": "MCP server for Claude Code providing context management, todo persistence, and AI second opinions. Share contexts and todos across sessions, get feedback from ChatGPT or Claude, and access everything via MCP tools.",
-  "title": "MCP Tools",
-  "version": "0.1.0",
+  "title": "MCP Toolz",
+  "version": "0.1.3",
   "repository": {
-    "url": "https://github.com/taylorleese/mcp-tools",
+    "url": "https://github.com/taylorleese/mcp-toolz",
     "source": "github"
   },
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
-      "identifier": "mcp-tools",
-      "version": "0.1.0",
+      "identifier": "mcp-toolz",
+      "version": "0.1.3",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -25,9 +25,9 @@
       "environmentVariables": [
         {
           "name": "MCP_TOOLS_DB_PATH",
-          "description": "Path to SQLite database for contexts and todos (defaults to ~/.mcp-tools/contexts.db)",
+          "description": "Path to SQLite database for contexts and todos (defaults to ~/.mcp-toolz/contexts.db)",
           "isRequired": false,
-          "default": "~/.mcp-tools/contexts.db"
+          "default": "~/.mcp-toolz/contexts.db"
         },
         {
           "name": "OPENAI_API_KEY",
@@ -58,7 +58,7 @@
   ],
   "_meta": {
     "license": "MIT",
-    "homepage": "https://github.com/taylorleese/mcp-tools#readme",
+    "homepage": "https://github.com/taylorleese/mcp-toolz#readme",
     "keywords": [
       "mcp",
       "model-context-protocol",

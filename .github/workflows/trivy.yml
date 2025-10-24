@@ -9,14 +9,16 @@ on:
     # Run every Monday at 7:00 UTC
     - cron: '0 7 * * 1'
 
-permissions:
-  contents: read
-  security-events: write
+# Declare minimal permissions for all jobs
+permissions: read-all
 
 jobs:
   trivy:
     name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout Repository

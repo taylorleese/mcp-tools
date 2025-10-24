@@ -1,5 +1,5 @@
 # Build stage
-FROM python:3.13-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ COPY src ./src
 RUN /app/.venv/bin/pip install --no-cache-dir .
 
 # Runtime stage
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 WORKDIR /app
 

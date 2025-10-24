@@ -42,7 +42,7 @@ git clone https://github.com/taylorleese/mcp-toolz.git
 cd mcp-toolz
 
 # Create and activate virtual environment
-python3.13 -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # macOS/Linux
 # or: venv\Scripts\activate  # Windows
 
@@ -552,7 +552,7 @@ mcp-toolz/
 # Clone and install
 git clone https://github.com/taylorleese/mcp-toolz.git
 cd mcp-toolz
-python3.13 -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt
 

@@ -22,11 +22,11 @@ def get_storage() -> ContextStorage:
 
 
 @click.group()
-def cli() -> None:
+def main() -> None:
     """Claude Code ↔ ChatGPT context sharing CLI."""
 
 
-@cli.group()
+@main.group()
 def context() -> None:
     """Manage context entries."""
 
@@ -356,7 +356,7 @@ def _parse_content(context_type: str, content: str) -> ContextContent:
 # Todo group commands
 
 
-@cli.group()
+@main.group()
 def todo() -> None:
     """Manage todo list snapshots."""
 
@@ -571,4 +571,4 @@ def delete_todo(snapshot_id: str, yes: bool) -> None:
 
 
 if __name__ == "__main__":
-    cli()
+    main()

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format clean
+.PHONY: help install install-dev test test-cov lint format clean build publish-test publish
 
 # Default target
 help:
@@ -10,6 +10,9 @@ help:
 	@echo "  make lint         - Run all linters via pre-commit"
 	@echo "  make format       - Format code via pre-commit"
 	@echo "  make clean        - Remove generated files and caches"
+	@echo "  make build        - Build distribution packages"
+	@echo "  make publish-test - Publish to TestPyPI"
+	@echo "  make publish      - Publish to PyPI (requires tests to pass)"
 
 # Installation targets
 install:
@@ -45,11 +48,39 @@ clean:
 	rm -rf .mypy_cache
 	rm -rf htmlcov
 	rm -rf .coverage
+	rm -rf coverage.xml
+	rm -rf junit.xml
 	rm -rf dist
 	rm -rf build
 	rm -rf *.egg-info
+	rm -rf src/*.egg-info
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	find . -type f -name ".DS_Store" -delete
 	@echo "✅ Cleaned!"
+
+# Publishing targets
+build: clean
+	@echo "Building distribution packages..."
+	python -m build
+	@echo "✅ Built packages in dist/"
+
+publish-test: build
+	@echo "Publishing to TestPyPI..."
+	twine upload --repository testpypi dist/*
+	@echo "✅ Published to TestPyPI!"
+	@echo "Install with: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-tools"
+
+publish: test lint build
+	@echo "Publishing to PyPI..."
+	@read -p "Are you sure you want to publish to PyPI? [y/N] " -n 1 -r; \
+	echo; \
+	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+		twine upload dist/*; \
+		echo "✅ Published to PyPI!"; \
+		echo "Install with: pip install mcp-tools"; \
+	else \
+		echo "❌ Publish cancelled"; \
+		exit 1; \
+	fi

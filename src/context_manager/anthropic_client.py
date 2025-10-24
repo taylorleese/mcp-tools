@@ -3,6 +3,7 @@
 import os
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 
 from models import ContextEntry
 
@@ -17,7 +18,7 @@ class ClaudeClient:
             msg = "Anthropic API key must be provided or set in ANTHROPIC_API_KEY environment variable"
             raise ValueError(msg)
 
-        self.model = model or os.getenv("MCP_TOOLS_CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
+        self.model: str = model or os.getenv("MCP_TOOLS_CLAUDE_MODEL") or "claude-sonnet-4-5-20250929"
         self.client = Anthropic(api_key=self.api_key)
 
     def get_second_opinion(self, context: ContextEntry, question: str | None = None) -> str:
@@ -59,7 +60,9 @@ Format your response clearly with sections as needed."""
             temperature=0.7,
         )
 
-        return response.content[0].text if response.content else ""
+        if response.content and isinstance(response.content[0], TextBlock):
+            return response.content[0].text
+        return ""
 
     def _format_context_for_claude(self, context: ContextEntry, question: str | None = None) -> str:
         """Format a context entry for Claude consumption.

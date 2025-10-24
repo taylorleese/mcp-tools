@@ -1,0 +1,74 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.taylorleese/mcp-tools",
+  "description": "MCP server for Claude Code providing context management, todo persistence, and AI second opinions. Share contexts and todos across sessions, get feedback from ChatGPT or Claude, and access everything via MCP tools.",
+  "title": "MCP Tools",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/taylorleese/mcp-tools",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "mcp-tools",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        "-m",
+        "mcp_server"
+      ],
+      "environmentVariables": [
+        {
+          "name": "MCP_TOOLS_DB_PATH",
+          "description": "Path to SQLite database for contexts and todos (defaults to ~/.mcp-tools/contexts.db)",
+          "isRequired": false,
+          "default": "~/.mcp-tools/contexts.db"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "description": "OpenAI API key for ask_chatgpt tool functionality",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "MCP_TOOLS_MODEL",
+          "description": "OpenAI model to use for ChatGPT responses (defaults to gpt-5)",
+          "isRequired": false,
+          "default": "gpt-5"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "description": "Anthropic API key for ask_claude tool functionality",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "MCP_TOOLS_CLAUDE_MODEL",
+          "description": "Anthropic model to use for Claude responses (defaults to claude-sonnet-4-5-20250929)",
+          "isRequired": false,
+          "default": "claude-sonnet-4-5-20250929"
+        }
+      ]
+    }
+  ],
+  "_meta": {
+    "license": "MIT",
+    "homepage": "https://github.com/taylorleese/mcp-tools#readme",
+    "keywords": [
+      "mcp",
+      "model-context-protocol",
+      "claude-code",
+      "context-management",
+      "todo-persistence",
+      "ai-assistant",
+      "chatgpt",
+      "anthropic",
+      "session-continuity"
+    ]
+  }
+}

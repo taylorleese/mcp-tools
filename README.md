@@ -105,6 +105,115 @@ When saving contexts through MCP tools, they are automatically tagged with:
 
 **Future:** Once ChatGPT Desktop adds MCP support, you'll be able to use these same tools there too.
 
+## Usage Examples
+
+Here are practical examples of how to use mcp-tools in Claude Code:
+
+### Example 1: Get a Second Opinion on Architecture Decisions
+
+**Prompt:**
+```
+I'm deciding between using Redis or Memcached for caching user sessions.
+Save this as a context and ask ChatGPT for a second opinion.
+Use tags: caching, redis, memcached, architecture
+```
+
+**What happens:**
+1. Claude Code uses `context_save` to save your architectural decision
+2. Then uses `ask_chatgpt` to get ChatGPT's perspective
+3. You get both AI opinions to inform your decision
+
+**Follow-up prompts:**
+- "Ask Claude the same question for comparison"
+- "Search my contexts tagged with 'architecture'"
+
+### Example 2: Session Continuity - Never Lose Your Place
+
+**Prompt (end of work session):**
+```
+Save my current todo list so I can restore it tomorrow
+```
+
+**What happens:**
+1. Claude Code uses `todo_save` to snapshot your current work state
+2. Todos are saved with project path and timestamp
+
+**Next day prompt:**
+```
+What was I working on yesterday? Restore my todos.
+```
+
+**What happens:**
+1. Claude Code uses `todo_restore` to get your last snapshot
+2. Shows you exactly where you left off
+3. You can jump right back into work
+
+### Example 3: Debug with Multiple AI Perspectives
+
+**Prompt:**
+```
+I'm getting "TypeError: Cannot read property 'map' of undefined" in my React component.
+The error occurs in UserList.jsx when rendering the users array.
+Save this as an error context and ask both ChatGPT and Claude for debugging suggestions.
+Tags: react, debugging, javascript
+```
+
+**What happens:**
+1. Claude Code uses `context_save` to record the error
+2. Uses `ask_chatgpt` to get OpenAI's debugging approach
+3. Uses `ask_claude` to get Anthropic's perspective
+4. You see two different debugging strategies
+
+**Follow-up prompts:**
+- "Search for other contexts tagged with 'react' bugs"
+- "Show me contexts from my last session"
+
+### Example 4: Track Performance Optimization Ideas
+
+**Prompt:**
+```
+Save this performance optimization idea: "Lazy load images below the fold using
+Intersection Observer API. Estimated 40% reduction in initial page load."
+Type: suggestion, Tags: performance, optimization, images
+```
+
+**What happens:**
+1. Claude Code uses `context_save` with type "suggestion"
+2. Context is searchable and tied to current project
+3. Available across all future sessions
+
+**Later prompt:**
+```
+Search my contexts for performance optimization ideas
+```
+
+**What happens:**
+1. Claude Code uses `context_search` with your query
+2. Returns all matching contexts across sessions
+3. You can review past optimization ideas
+
+### Example 5: Cross-Session Knowledge Sharing
+
+**Prompt (in Project A):**
+```
+I figured out how to handle OAuth refresh tokens properly.
+Save this so I can reference it in other projects:
+"Store refresh tokens in httpOnly cookies, access tokens in memory only.
+Rotate refresh tokens on each use. Set 7-day expiry on refresh, 15min on access."
+Type: code, Tags: oauth, security, authentication
+```
+
+**Prompt (later in Project B):**
+```
+How did I implement OAuth refresh tokens in my last project?
+Search for contexts about oauth and show me what I saved.
+```
+
+**What happens:**
+1. Claude Code uses `context_search` to find your OAuth implementation
+2. Retrieves the context across projects
+3. You reuse your own knowledge without starting from scratch
+
 ## Sharing Contexts Between Agents
 
 mcp-tools makes it easy to share contexts and todos across multiple Claude Code sessions or agents.

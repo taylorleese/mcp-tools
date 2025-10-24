@@ -29,9 +29,17 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - pydantic==2.10.3
+          - mcp==1.18.0
+          - pydantic==2.12.3
+          - openai==2.6.0
+          - anthropic==0.71.0
+          - click==8.3.0
+          - python-dotenv==1.1.1
+          - aiosqlite==0.21.0
+          - pytest==8.4.2
+          - pytest-asyncio==0.25.3
           - types-aiofiles
-        args: [--strict, --ignore-missing-imports]
+        args: [--config-file=pyproject.toml]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2

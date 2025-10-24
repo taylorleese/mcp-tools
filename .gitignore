@@ -45,3 +45,9 @@ data/*.db-journal
 # OS
 .DS_Store
 Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+coverage.xml
+junit.xml

@@ -5,8 +5,50 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mcp-tools"
 version = "0.1.0"
-description = "MCP tools for context and todo management across sessions"
+description = "MCP server for Claude Code providing context management, todo persistence, and AI second opinions"
+readme = "README.md"
 requires-python = ">=3.13"
+license = {text = "MIT"}
+authors = [
+    {name = "Taylor Leese", email = "taylorleese@users.noreply.github.com"}
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "claude-code",
+    "context-management",
+    "todo-persistence",
+    "ai-assistant",
+    "chatgpt",
+    "anthropic"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "mcp==1.18.0",
+    "pydantic==2.12.3",
+    "openai==2.6.0",
+    "anthropic==0.71.0",
+    "click==8.3.0",
+    "python-dotenv==1.1.1",
+    "aiosqlite==0.21.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/taylorleese/mcp-tools"
+Repository = "https://github.com/taylorleese/mcp-tools"
+Issues = "https://github.com/taylorleese/mcp-tools/issues"
+Documentation = "https://github.com/taylorleese/mcp-tools#readme"
+
+[project.scripts]
+mcp-tools = "context_manager.cli:main"
 
 [tool.black]
 line-length = 140
@@ -30,9 +72,15 @@ strict = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+mypy_path = "src"
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = "src.context_manager.cli"
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
 disallow_untyped_decorators = false
 
 [tool.bandit]

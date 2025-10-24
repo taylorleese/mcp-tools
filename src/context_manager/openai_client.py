@@ -17,7 +17,7 @@ class ChatGPTClient:
             msg = "OpenAI API key must be provided or set in OPENAI_API_KEY environment variable"
             raise ValueError(msg)
 
-        self.model = model or os.getenv("MCP_TOOLS_MODEL", "gpt-5")
+        self.model: str = model or os.getenv("MCP_TOOLS_MODEL") or "gpt-5"
         self.client = OpenAI(api_key=self.api_key)
 
     def get_second_opinion(self, context: ContextEntry, question: str | None = None) -> str:

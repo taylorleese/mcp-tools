@@ -10,6 +10,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, TextContent, Tool
 from pydantic import AnyUrl
 
+from context_manager.anthropic_client import ClaudeClient
+from context_manager.openai_client import ChatGPTClient
 from context_manager.storage import ContextStorage
 from models import ContextEntry
 
@@ -29,9 +31,9 @@ class ContextMCPServer:
         self.session_timestamp = datetime.now(UTC)
 
         # Register handlers
-        self.server.list_resources()(self.list_resources)
-        self.server.read_resource()(self.read_resource)
-        self.server.list_tools()(self.list_tools)
+        self.server.list_resources()(self.list_resources)  # type: ignore[no-untyped-call]
+        self.server.read_resource()(self.read_resource)  # type: ignore[no-untyped-call]
+        self.server.list_tools()(self.list_tools)  # type: ignore[no-untyped-call]
         self.server.call_tool()(self.call_tool)
 
     async def list_resources(self) -> list[Resource]:
@@ -496,10 +498,8 @@ class ContextMCPServer:
                 return [TextContent(type="text", text=f"Context {context_id} not found")]
 
             try:
-                from context_manager.openai_client import ChatGPTClient
-
-                client = ChatGPTClient()
-                response = client.get_second_opinion(context, question)
+                chatgpt_client = ChatGPTClient()
+                response = chatgpt_client.get_second_opinion(context, question)
 
                 # Only save to database if it's a generic second opinion (no custom question)
                 if not question:
@@ -518,10 +518,8 @@ class ContextMCPServer:
                 return [TextContent(type="text", text=f"Context {context_id} not found")]
 
             try:
-                from context_manager.anthropic_client import ClaudeClient
-
-                client = ClaudeClient()
-                response = client.get_second_opinion(context, question)
+                claude_client = ClaudeClient()
+                response = claude_client.get_second_opinion(context, question)
 
                 # Only save to database if it's a generic second opinion (no custom question)
                 if not question:

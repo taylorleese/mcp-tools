@@ -1,10 +1,10 @@
 """Data models for context entries."""
 
 from datetime import datetime
-from typing import Any, ClassVar
+from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class ContextContent(BaseModel):
@@ -31,8 +31,6 @@ class ContextEntry(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     chatgpt_response: str | None = None
     claude_response: str | None = None
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
 
 
 class ContextSearchResult(BaseModel):
@@ -62,5 +60,3 @@ class TodoListSnapshot(BaseModel):
     session_context_id: str | None = None
     is_active: bool = False
     metadata: dict[str, Any] = Field(default_factory=dict)
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})

@@ -85,8 +85,8 @@ def mock_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
     """Set up mock environment variables for testing."""
     monkeypatch.setenv("OPENAI_API_KEY", "test-openai-key")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-anthropic-key")
-    monkeypatch.setenv("MCP_TOOLS_MODEL", "gpt-5")
-    monkeypatch.setenv("MCP_TOOLS_CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
+    monkeypatch.setenv("MCP_TOOLZ_MODEL", "gpt-5")
+    monkeypatch.setenv("MCP_TOOLZ_CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
 
 
 @pytest.fixture

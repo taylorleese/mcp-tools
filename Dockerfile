@@ -45,7 +45,7 @@ USER app
 RUN mkdir -p /home/app/.mcp-toolz
 
 # Set default database path
-ENV MCP_TOOLS_DB_PATH=/home/app/.mcp-toolz/contexts.db
+ENV MCP_TOOLZ_DB_PATH=/home/app/.mcp-toolz/contexts.db
 
 # Run the MCP server
 ENTRYPOINT ["python", "-m", "mcp_server"]

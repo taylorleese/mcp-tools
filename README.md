@@ -3,8 +3,10 @@
 [![CI](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml/badge.svg)](https://github.com/taylorleese/mcp-toolz/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/taylorleese/mcp-toolz/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-toolz)
 [![PyPI version](https://img.shields.io/pypi/v/mcp-toolz.svg)](https://pypi.org/project/mcp-toolz/)
+
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/taylorleese/mcp-toolz/blob/main/.github/dependabot.yml)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
@@ -26,26 +28,39 @@ MCP server for Claude Code providing context management, todo persistence, and A
 
 ### Installation
 
+#### From PyPI (Recommended)
+
 ```bash
-# Navigate to project
-cd mcp-tools
+pip install mcp-toolz
+```
+
+#### From Source (Development)
+
+```bash
+# Clone the repository
+git clone https://github.com/taylorleese/mcp-toolz.git
+cd mcp-toolz
 
 # Create and activate virtual environment
 python3.13 -m venv venv
 source venv/bin/activate  # macOS/Linux
 # or: venv\Scripts\activate  # Windows
 
-# Install dependencies
-pip install -r requirements-dev.txt
-
-# Configure API keys
-cp .env.example .env
-# Edit .env and add your API keys:
-# OPENAI_API_KEY=sk-...
-# ANTHROPIC_API_KEY=sk-ant-...
+# Install in editable mode with dev dependencies
+pip install -e ".[dev]"
 ```
 
-**Note:** The `./mcp-tools` wrapper automatically uses `.env` and ignores shell environment variables.
+### Configuration
+
+```bash
+# Set your API keys as environment variables
+export OPENAI_API_KEY=sk-...
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# Or create a .env file (if installing from source)
+cp .env.example .env
+# Edit .env and add your API keys
+```
 
 ### MCP Server Setup (Recommended)
 
@@ -53,28 +68,43 @@ The primary way to use mcp-toolz is via the MCP server in Claude Code:
 
 1. **Add to Claude Code settings** (add this JSON to your Claude Code MCP settings):
 
+**If installed via pip:**
 ```json
 {
   "mcpServers": {
     "mcp-toolz": {
       "command": "python",
       "args": ["-m", "mcp_server"],
-      "cwd": "/absolute/path/to/mcp-tools",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/mcp-tools/src"
+        "OPENAI_API_KEY": "sk-...",
+        "ANTHROPIC_API_KEY": "sk-ant-..."
       }
     }
   }
 }
 ```
 
-2. **Update the path** in the config above with your actual installation path
+**If installed from source:**
+```json
+{
+  "mcpServers": {
+    "mcp-toolz": {
+      "command": "python",
+      "args": ["-m", "mcp_server"],
+      "cwd": "/absolute/path/to/mcp-toolz",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/mcp-toolz/src"
+      }
+    }
+  }
+}
+```
 
-3. **Configure API keys** in `.env` file (API keys are read from `.env`, not from MCP config)
+2. **Configure API keys** - Add your API keys to the `env` section (pip) or `.env` file (source)
 
-4. **Restart Claude Code** to load the MCP server
+3. **Restart Claude Code** to load the MCP server
 
-5. **Use MCP tools in Claude Code**:
+4. **Use MCP tools in Claude Code**:
    - "Save this context about authentication"
    - "Ask ChatGPT about the last context I saved"
    - "Show my active todos"
@@ -264,7 +294,7 @@ mkdir -p ~/Dropbox/mcp-toolz-shared
 2. **Update `.env` file** or MCP config to point to the synced database:
 ```bash
 # In .env file
-MCP_TOOLS_DB_PATH=~/Dropbox/mcp-toolz-shared/contexts.db
+MCP_TOOLZ_DB_PATH=~/Dropbox/mcp-toolz-shared/contexts.db
 ```
 
 Or in your MCP config:
@@ -274,10 +304,10 @@ Or in your MCP config:
     "mcp-toolz": {
       "command": "python",
       "args": ["-m", "mcp_server"],
-      "cwd": "/absolute/path/to/mcp-tools",
+      "cwd": "/absolute/path/to/mcp-toolz",
       "env": {
-        "PYTHONPATH": "/absolute/path/to/mcp-tools/src",
-        "MCP_TOOLS_DB_PATH": "/Users/you/Dropbox/mcp-toolz-shared/contexts.db"
+        "PYTHONPATH": "/absolute/path/to/mcp-toolz/src",
+        "MCP_TOOLZ_DB_PATH": "/Users/you/Dropbox/mcp-toolz-shared/contexts.db"
       }
     }
   }
@@ -303,14 +333,14 @@ Or in your MCP config:
 
 ```bash
 # Get ChatGPT's opinion on something
-./mcp-tools context save-and-query \
+./mcp-toolz context save-and-query \
   --type suggestion \
   --title "Redis caching strategy" \
   --content "Use Redis for session storage with 1-hour TTL" \
   --tags "caching,redis"
 
 # Save your current todos
-./mcp-tools todo save \
+./mcp-toolz todo save \
   --todos '[
     {"content":"Fix auth bug","status":"in_progress","activeForm":"Fixing auth bug"},
     {"content":"Write tests","status":"pending","activeForm":"Writing tests"}
@@ -318,11 +348,11 @@ Or in your MCP config:
   --context "Working on authentication"
 
 # List everything
-./mcp-tools context list
-./mcp-tools todo list
+./mcp-toolz context list
+./mcp-toolz todo list
 
 # Restore todos later
-./mcp-tools todo restore
+./mcp-toolz todo restore
 ```
 
 ## Command Reference
@@ -331,26 +361,26 @@ Or in your MCP config:
 
 ```bash
 # Save and query ChatGPT immediately
-./mcp-tools context save-and-query \
+./mcp-toolz context save-and-query \
   --type <type> \
   --title "Title" \
   --content "..." \
   --tags "tag1,tag2"
 
 # Save without querying
-./mcp-tools context save --type code --file path/to/file.py
+./mcp-toolz context save --type code --file path/to/file.py
 
 # Ask ChatGPT or Claude about existing context
-./mcp-tools context ask-chatgpt <context-id> [--question "Your question"]
-./mcp-tools context ask-claude <context-id> [--question "Your question"]
+./mcp-toolz context ask-chatgpt <context-id> [--question "Your question"]
+./mcp-toolz context ask-claude <context-id> [--question "Your question"]
 
 # Browse and search
-./mcp-tools context list [--limit N] [--type TYPE]
-./mcp-tools context search "query"
-./mcp-tools context show <context-id>
+./mcp-toolz context list [--limit N] [--type TYPE]
+./mcp-toolz context search "query"
+./mcp-toolz context show <context-id>
 
 # Delete
-./mcp-tools context delete <context-id>
+./mcp-toolz context delete <context-id>
 ```
 
 **Context Types:**
@@ -363,20 +393,20 @@ Or in your MCP config:
 
 ```bash
 # Save current todos
-./mcp-tools todo save \
+./mcp-toolz todo save \
   --todos '[{"content":"...","status":"pending","activeForm":"..."}]' \
   --context "What you're working on"
 
 # Restore (defaults to active snapshot for current project)
-./mcp-tools todo restore [<snapshot-id>]
+./mcp-toolz todo restore [<snapshot-id>]
 
 # Browse and search
-./mcp-tools todo list [--project-path PATH]
-./mcp-tools todo search "query"
-./mcp-tools todo show <snapshot-id>
+./mcp-toolz todo list [--project-path PATH]
+./mcp-toolz todo search "query"
+./mcp-toolz todo show <snapshot-id>
 
 # Delete
-./mcp-tools todo delete <snapshot-id>
+./mcp-toolz todo delete <snapshot-id>
 ```
 
 **Todo Status:** `pending`, `in_progress`, `completed`
@@ -384,9 +414,9 @@ Or in your MCP config:
 ### Get Help
 
 ```bash
-./mcp-tools --help
-./mcp-tools context --help
-./mcp-tools todo --help
+./mcp-toolz --help
+./mcp-toolz context --help
+./mcp-toolz todo --help
 ```
 
 ## Common Workflows
@@ -396,7 +426,7 @@ Or in your MCP config:
 When Claude Code suggests an implementation, get another AI's perspective:
 
 ```bash
-./mcp-tools context save-and-query \
+./mcp-toolz context save-and-query \
   --type suggestion \
   --title "Microservices vs Monolith for e-commerce" \
   --content "Building platform with 5 services. Start microservices or monolith first?" \
@@ -407,19 +437,19 @@ The AI's response appears immediately in your console. You can also ask specific
 
 ```bash
 # Ask a specific question about the context
-./mcp-tools context ask-chatgpt <context-id> --question "What are the scalability concerns?"
+./mcp-toolz context ask-chatgpt <context-id> --question "What are the scalability concerns?"
 
 # Get Claude's general opinion
-./mcp-tools context ask-claude <context-id>
+./mcp-toolz context ask-claude <context-id>
 
 # Or ask Claude a specific question
-./mcp-tools context ask-claude <context-id> --question "How would you handle database migrations?"
+./mcp-toolz context ask-claude <context-id> --question "How would you handle database migrations?"
 ```
 
 ### Debug with Two Perspectives
 
 ```bash
-./mcp-tools context save-and-query \
+./mcp-toolz context save-and-query \
   --type error \
   --title "CORS issue in production" \
   --content "Error: blocked by CORS policy. Headers: ..." \
@@ -430,7 +460,7 @@ The AI's response appears immediately in your console. You can also ask specific
 
 ```bash
 # End of work session
-./mcp-tools todo save \
+./mcp-toolz todo save \
   --todos '[
     {"content":"Implement login","status":"completed","activeForm":"Implementing login"},
     {"content":"Add OAuth","status":"in_progress","activeForm":"Adding OAuth"},
@@ -439,26 +469,26 @@ The AI's response appears immediately in your console. You can also ask specific
   --context "Day 2 of auth feature"
 
 # Next session
-./mcp-tools todo restore
+./mcp-toolz todo restore
 ```
 
 ### Share Across Claude Code Sessions
 
 ```bash
 # Session 1: Save interesting discussions
-./mcp-tools context save \
+./mcp-toolz context save \
   --type conversation \
   --title "Performance optimization ideas" \
   --content "..." \
   --tags "performance"
 
 # Session 2: Find and review
-./mcp-tools context search "performance"
-./mcp-tools context show <context-id>
+./mcp-toolz context search "performance"
+./mcp-toolz context show <context-id>
 
 # Or ask AI specific questions
-./mcp-tools context ask-chatgpt <context-id> --question "What's the performance impact?"
-./mcp-tools context ask-claude <context-id> --question "Are there any security concerns?"
+./mcp-toolz context ask-chatgpt <context-id> --question "What's the performance impact?"
+./mcp-toolz context ask-claude <context-id> --question "Are there any security concerns?"
 ```
 
 ## Environment Variables
@@ -469,9 +499,9 @@ OPENAI_API_KEY=sk-...                              # Your OpenAI API key
 ANTHROPIC_API_KEY=sk-ant-...                       # Your Anthropic API key
 
 # Optional
-MCP_TOOLS_DB_PATH=~/.mcp-toolz/contexts.db         # Shared database location (default)
-MCP_TOOLS_MODEL=gpt-5                              # OpenAI model (default: gpt-5)
-MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
+MCP_TOOLZ_DB_PATH=~/.mcp-toolz/contexts.db         # Shared database location (default)
+MCP_TOOLZ_MODEL=gpt-5                              # OpenAI model (default: gpt-5)
+MCP_TOOLZ_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ```
 
 ## Troubleshooting
@@ -479,20 +509,20 @@ MCP_TOOLS_CLAUDE_MODEL=claude-sonnet-4-5-20250929  # Claude model
 ### "Error 401: Invalid API key"
 - Verify API keys are set in `.env` (OPENAI_API_KEY and/or ANTHROPIC_API_KEY)
 - Check billing is enabled on your OpenAI/Anthropic account
-- The `./mcp-tools` wrapper automatically unsets shell environment variables to use `.env`
+- The `./mcp-toolz` wrapper automatically unsets shell environment variables to use `.env`
 
 ### "No module named context_manager"
-- Use `./mcp-tools` helper script (recommended)
+- Use `./mcp-toolz` helper script (recommended)
 - Or set `PYTHONPATH=src` before running Python directly
 
 ### Commands not found
 - Activate venv: `source venv/bin/activate`
-- Make script executable: `chmod +x mcp-tools`
+- Make script executable: `chmod +x mcp-toolz`
 
 ### Todos not restoring
 - Check you're in the same project directory
-- Use `./mcp-tools todo list` to see all snapshots
-- Restore specific snapshot: `./mcp-tools todo restore <snapshot-id>`
+- Use `./mcp-toolz todo list` to see all snapshots
+- Restore specific snapshot: `./mcp-toolz todo restore <snapshot-id>`
 
 ## Project Structure
 
@@ -511,7 +541,7 @@ mcp-toolz/
 │   └── contexts.db         # SQLite database
 ├── requirements.txt
 ├── requirements-dev.txt
-└── mcp-tools               # Helper script
+└── mcp-toolz               # Helper script
 ```
 
 ## Development
@@ -521,7 +551,7 @@ mcp-toolz/
 ```bash
 # Clone and install
 git clone https://github.com/taylorleese/mcp-toolz.git
-cd mcp-tools
+cd mcp-toolz
 python3.13 -m venv venv
 source venv/bin/activate
 pip install -r requirements-dev.txt

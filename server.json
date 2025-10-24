@@ -24,7 +24,7 @@
       ],
       "environmentVariables": [
         {
-          "name": "MCP_TOOLS_DB_PATH",
+          "name": "MCP_TOOLZ_DB_PATH",
           "description": "Path to SQLite database for contexts and todos (defaults to ~/.mcp-toolz/contexts.db)",
           "isRequired": false,
           "default": "~/.mcp-toolz/contexts.db"
@@ -36,7 +36,7 @@
           "isSecret": true
         },
         {
-          "name": "MCP_TOOLS_MODEL",
+          "name": "MCP_TOOLZ_MODEL",
           "description": "OpenAI model to use for ChatGPT responses (defaults to gpt-5)",
           "isRequired": false,
           "default": "gpt-5"
@@ -48,7 +48,7 @@
           "isSecret": true
         },
         {
-          "name": "MCP_TOOLS_CLAUDE_MODEL",
+          "name": "MCP_TOOLZ_CLAUDE_MODEL",
           "description": "Anthropic model to use for Claude responses (defaults to claude-sonnet-4-5-20250929)",
           "isRequired": false,
           "default": "claude-sonnet-4-5-20250929"

@@ -18,7 +18,7 @@ class ClaudeClient:
             msg = "Anthropic API key must be provided or set in ANTHROPIC_API_KEY environment variable"
             raise ValueError(msg)
 
-        self.model: str = model or os.getenv("MCP_TOOLS_CLAUDE_MODEL") or "claude-sonnet-4-5-20250929"
+        self.model: str = model or os.getenv("MCP_TOOLZ_CLAUDE_MODEL") or "claude-sonnet-4-5-20250929"
         self.client = Anthropic(api_key=self.api_key)
 
     def get_second_opinion(self, context: ContextEntry, question: str | None = None) -> str:

@@ -17,7 +17,7 @@ load_dotenv()
 
 def get_storage() -> ContextStorage:
     """Get the context storage instance."""
-    db_path = os.path.expanduser(os.getenv("MCP_TOOLS_DB_PATH", "~/.mcp-toolz/contexts.db"))
+    db_path = os.path.expanduser(os.getenv("MCP_TOOLZ_DB_PATH", "~/.mcp-toolz/contexts.db"))
     return ContextStorage(db_path)
 
 

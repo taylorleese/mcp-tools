@@ -20,7 +20,7 @@ def cli_runner() -> CliRunner:
 @pytest.fixture
 def mock_storage(temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     """Mock storage for CLI tests."""
-    monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+    monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
     return MagicMock()
 
 
@@ -29,7 +29,7 @@ class TestContextCommands:
 
     def test_context_save_with_content(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test saving context with inline content."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(
             main,
@@ -55,7 +55,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test saving context from file."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # Create temporary file
         test_file = tmp_path / "test.py"
@@ -83,7 +83,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test listing contexts."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # First save a context
         from context_manager.storage import ContextStorage
@@ -100,7 +100,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test listing contexts with type filter."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -115,7 +115,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test searching contexts."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -130,7 +130,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test showing a specific context."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -144,7 +144,7 @@ class TestContextCommands:
 
     def test_context_show_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test showing a non-existent context."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["context", "show", "nonexistent-id"])
 
@@ -155,7 +155,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test showing context output format."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -172,7 +172,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test deleting a context."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -188,7 +188,7 @@ class TestContextCommands:
         self, cli_runner: CliRunner, temp_db_path: str, sample_context: ContextEntry, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test cancelling context deletion."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -209,7 +209,7 @@ class TestContextCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test save-and-query command."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # Mock ChatGPT client
         mock_client = MagicMock()
@@ -243,7 +243,7 @@ class TestContextCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test ask-chatgpt command."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # Save context first
         from context_manager.storage import ContextStorage
@@ -273,7 +273,7 @@ class TestContextCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test ask-claude command."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # Save context first
         from context_manager.storage import ContextStorage
@@ -299,7 +299,7 @@ class TestTodoCommands:
 
     def test_todo_save(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test saving todos."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         # Create todos JSON
         todos_data = [
@@ -329,7 +329,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test listing todo snapshots."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -349,7 +349,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test showing a todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -369,7 +369,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test showing todo snapshot output format."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -390,7 +390,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test restoring a todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -410,7 +410,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test searching todo snapshots."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -429,7 +429,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test deleting a todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -449,7 +449,7 @@ class TestTodoCommands:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test cancelling todo deletion."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         from context_manager.storage import ContextStorage
 
@@ -463,7 +463,7 @@ class TestTodoCommands:
 
     def test_todo_save_invalid_json(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test saving todos with invalid JSON."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["todo", "save", "--todos", "not-valid-json"])
 
@@ -472,7 +472,7 @@ class TestTodoCommands:
 
     def test_todo_show_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test showing non-existent todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["todo", "show", "nonexistent-id"])
 
@@ -481,7 +481,7 @@ class TestTodoCommands:
 
     def test_todo_delete_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test deleting non-existent todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["todo", "delete", "nonexistent-id"])
 
@@ -489,7 +489,7 @@ class TestTodoCommands:
 
     def test_context_list_empty(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test listing contexts when empty."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["context", "list"])
 
@@ -497,7 +497,7 @@ class TestTodoCommands:
 
     def test_context_search_no_results(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test searching contexts with no results."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["context", "search", "nonexistent"])
 
@@ -506,7 +506,7 @@ class TestTodoCommands:
 
     def test_todo_search_no_results(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test searching todos with no results."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["todo", "search", "nonexistent"])
 
@@ -515,7 +515,7 @@ class TestTodoCommands:
 
     def test_todo_restore_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test restoring non-existent todo snapshot."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(main, ["todo", "restore", "nonexistent-id"])
 
@@ -526,7 +526,7 @@ class TestTodoCommands:
         self, mock_client: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         """Test save-and-query with file path."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
         monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
         # Create temp file
@@ -559,7 +559,7 @@ class TestTodoCommands:
         self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test save-and-query without content or file."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
 
         result = cli_runner.invoke(
             main,
@@ -574,7 +574,7 @@ class TestTodoCommands:
         self, mock_client: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test save-and-query with ChatGPT error."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
         monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
         # Mock ChatGPT error
@@ -604,7 +604,7 @@ class TestTodoCommands:
         self, mock_client: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test ask-claude with Claude error."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
 
         # First save a context

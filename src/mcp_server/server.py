@@ -23,7 +23,7 @@ class ContextMCPServer:
         """Initialize the MCP server."""
         self.server = Server("mcp-toolz")
         # Use shared database location in home directory so all projects share the same data
-        db_path = os.path.expanduser(os.getenv("MCP_TOOLS_DB_PATH", "~/.mcp-toolz/contexts.db"))
+        db_path = os.path.expanduser(os.getenv("MCP_TOOLZ_DB_PATH", "~/.mcp-toolz/contexts.db"))
         self.storage = ContextStorage(db_path)
 
         # Generate session ID for this MCP server instance

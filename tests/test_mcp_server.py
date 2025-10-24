@@ -15,7 +15,7 @@ class TestMCPServerTools:
     @pytest.fixture
     def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> ContextMCPServer:
         """Create an MCP server instance with a temporary database."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
         return ContextMCPServer()
 
     @pytest.mark.asyncio
@@ -216,7 +216,7 @@ class TestMCPServerResources:
     @pytest.fixture
     def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> ContextMCPServer:
         """Create an MCP server instance with a temporary database."""
-        monkeypatch.setenv("MCP_TOOLS_DB_PATH", temp_db_path)
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
         return ContextMCPServer()
 
     @pytest.mark.asyncio

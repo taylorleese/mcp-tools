@@ -72,6 +72,7 @@ repos:
         name: pipdeptree
         entry: pipdeptree
         args: [--warn, fail]
-        language: system
+        language: python
+        additional_dependencies: [pipdeptree==2.29.0]
         pass_filenames: false
         always_run: true

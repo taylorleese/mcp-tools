@@ -22,3 +22,31 @@ updates:
       python-dependencies:
         patterns:
           - "*"
+
+  # Docker base image updates
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "deps"
+      include: "scope"

@@ -693,3 +693,94 @@ class TestTodoCommands:
 
         assert result.exit_code == 1
         assert "Error querying Claude" in result.output
+
+
+class TestErrorHandling:
+    """Test error handling in CLI commands."""
+
+    def test_ask_chatgpt_context_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test ask-chatgpt with non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "ask-chatgpt", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    def test_ask_chatgpt_with_question(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test ask-chatgpt with custom question."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        # First save a context and extract ID from save output
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        # Extract ID from save output - format: "Context saved (ID: <uuid>)"
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match, f"Could not find context ID in: {save_result.output}"
+        context_id = match.group(1)
+
+        with patch("context_manager.cli.ChatGPTClient") as mock_client:
+            mock_instance = MagicMock()
+            mock_instance.get_second_opinion.return_value = "Custom answer"
+            mock_client.return_value = mock_instance
+
+            result = cli_runner.invoke(main, ["context", "ask-chatgpt", context_id, "--question", "What is this?"])
+
+            assert result.exit_code == 0
+            assert "Custom answer" in result.output
+            assert "Response saved" not in result.output  # Should not save with custom question
+
+    def test_ask_gemini_context_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test ask-gemini with non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "ask-gemini", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    def test_ask_deepseek_context_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test ask-deepseek with non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "ask-deepseek", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    def test_context_delete_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test deleting non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "delete", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    def test_context_show_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test showing non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "show", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    def test_context_search_no_results(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test search with no matching results."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "search", "nonexistentquery"])
+
+        assert result.exit_code == 0
+        assert "No contexts found" in result.output
+
+    def test_todo_restore_no_snapshot(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test restoring todo when no snapshot exists."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["todo", "restore"])
+
+        assert result.exit_code == 1
+        assert "No active todo snapshot found" in result.output

@@ -68,10 +68,13 @@ build: clean
 	@echo "✅ Built packages in dist/"
 
 publish-test: build
-	@echo "Publishing to TestPyPI..."
-	twine upload --repository testpypi dist/*
-	@echo "✅ Published to TestPyPI!"
-	@echo "Install with: pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
+	@echo "Publishing to TestPyPI via GitHub Actions..."
+	@echo "Triggering publish workflow for TestPyPI..."
+	@gh workflow run publish.yml -f environment=testpypi
+	@echo "✅ Workflow triggered!"
+	@echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"
+	@echo "After publish completes, install with:"
+	@echo "  pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
 
 publish: test lint build
 	@echo "Publishing to PyPI and GitHub..."

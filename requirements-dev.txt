@@ -16,7 +16,7 @@ bandit==1.8.6
 pydocstyle==6.3.0
 vulture==2.14
 pipdeptree==2.29.0
-pip-audit==2.7.3
+pip-audit==2.9.0
 
 # Type Stubs
 types-aiofiles==25.1.0.20251011
@@ -29,4 +29,4 @@ build==1.3.0
 twine==6.2.0
 
 # Dependency Management
-pip-tools==7.4.1
+pip-tools==7.5.1

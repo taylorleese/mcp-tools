@@ -16,7 +16,7 @@ mcp-name: io.github.taylorleese/mcp-toolz
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/taylorleese/mcp-toolz/badge)](https://scorecard.dev/viewer/?uri=github.com/taylorleese/mcp-toolz)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-blue?logo=dependabot)](https://github.com/taylorleese/mcp-toolz/blob/main/.github/dependabot.yml)
 
-MCP server for Claude Code providing context management, todo persistence, and multi-AI perspectives. Share contexts and todos across sessions, compare insights from ChatGPT, Claude, Gemini, and DeepSeek, and access everything via MCP tools.
+Save contexts and todos across Claude Code sessions, get feedback from ChatGPT, Claude, Gemini, and DeepSeek.
 
 ## Features
 
@@ -24,7 +24,7 @@ MCP server for Claude Code providing context management, todo persistence, and m
 - **Session Continuity**: Never lose context when restarting Claude Code - restore "what was I working on last session"
 - **Project Organization**: Contexts and todos automatically organized by project directory
 - **Session Tracking**: Every Claude Code session gets a unique ID - track your work over time
-- **Multi-AI Perspectives**: Compare feedback from ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and DeepSeek on your code and decisions
+- **AI Feedback**: Get feedback from ChatGPT (OpenAI), Claude (Anthropic), Gemini (Google), and DeepSeek on your code and decisions
 - **Context Types**: Save conversations, code snippets, architectural suggestions, or error traces
 - **Persistent Todos**: Save and restore your todo list across sessions - never forget where you left off
 - **Full-Text Search**: Find anything by content, tags, project, or session
@@ -136,7 +136,7 @@ The MCP server works NOW with Claude Code and provides these tools:
 - `context_list` - List recent
 - `context_delete` - Delete by ID
 
-**Multi-AI Perspective Tools:**
+**AI Feedback Tools:**
 
 - `ask_chatgpt` - Get ChatGPT's analysis of a context (supports custom questions)
 - `ask_claude` - Get Claude's analysis of a context (supports custom questions)

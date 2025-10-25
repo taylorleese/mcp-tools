@@ -52,6 +52,7 @@ htmlcov/
 coverage.xml
 junit.xml
 .pytest_cache/
+.hypothesis/
 
 # Tool caches
 .mypy_cache/

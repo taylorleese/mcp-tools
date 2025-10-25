@@ -1,40 +1,36 @@
-# Smithery configuration file: https://smithery.ai/docs/deployments
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
 startCommand:
   type: stdio
-
-configSchema:
-  # JSON Schema defining the configuration options for the MCP.
-  type: object
-  properties:
-    openaiApiKey:
-      type: string
-      description: OpenAI API key for ChatGPT second opinions (optional)
-    anthropicApiKey:
-      type: string
-      description: Anthropic API key for Claude second opinions (optional)
-    googleApiKey:
-      type: string
-      description: Google API key for Gemini second opinions (optional)
-    deepseekApiKey:
-      type: string
-      description: DeepSeek API key for DeepSeek second opinions (optional)
-    dbPath:
-      type: string
-      description: SQLite database path for storing contexts and todos
-      default: ~/.mcp-toolz/contexts.db
-
-commandFunction:
-  # A function that produces the CLI command to start the MCP on stdio.
-  |-
-  (config) => ({
-    command: 'uvx',
-    args: ['mcp-toolz@0.3.2'],
-    env: {
-      ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
-      ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),
-      ...(config.googleApiKey && { GOOGLE_API_KEY: config.googleApiKey }),
-      ...(config.deepseekApiKey && { DEEPSEEK_API_KEY: config.deepseekApiKey }),
-      ...(config.dbPath && { MCP_TOOLS_DB_PATH: config.dbPath })
-    }
-  })
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    properties:
+      openaiApiKey:
+        type: string
+        description: OpenAI API key for ChatGPT second opinions (optional)
+      anthropicApiKey:
+        type: string
+        description: Anthropic API key for Claude second opinions (optional)
+      googleApiKey:
+        type: string
+        description: Google API key for Gemini second opinions (optional)
+      deepseekApiKey:
+        type: string
+        description: DeepSeek API key for DeepSeek second opinions (optional)
+      dbPath:
+        type: string
+        description: SQLite database path for storing contexts and todos
+        default: ~/.mcp-toolz/contexts.db
+  commandFunction: |
+    config => ({
+      command: 'uvx',
+      args: ['mcp-toolz@0.3.2'],
+      env: {
+        ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
+        ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),
+        ...(config.googleApiKey && { GOOGLE_API_KEY: config.googleApiKey }),
+        ...(config.deepseekApiKey && { DEEPSEEK_API_KEY: config.deepseekApiKey }),
+        ...(config.dbPath && { MCP_TOOLS_DB_PATH: config.dbPath })
+      }
+    })

@@ -124,23 +124,32 @@ jobs:
       - name: Copy attestation bundles for OpenSSF Scorecard
         run: |
           # Copy attestation bundles next to their artifacts with .intoto.jsonl extension
-          # The bundles contain the artifact digest, we need to match them to actual files
-          for file in dist/*.whl dist/*.tar.gz; do
-            if [ -f "$file" ]; then
-              # Calculate the digest of the artifact
-              digest=$(sha256sum "$file" | awk '{print $1}')
-              # Find the bundle with this digest in its filename
-              if [ -f "${RUNNER_TEMP}/created_attestation_paths.txt" ]; then
+          echo "Checking for created_attestation_paths.txt..."
+          if [ -f "${RUNNER_TEMP}/created_attestation_paths.txt" ]; then
+            echo "Found attestation paths file:"
+            cat "${RUNNER_TEMP}/created_attestation_paths.txt"
+
+            for file in dist/*.whl dist/*.tar.gz; do
+              if [ -f "$file" ]; then
+                echo "Processing $file..."
+                digest=$(sha256sum "$file" | awk '{print $1}')
+                echo "Digest: $digest"
+
                 while IFS= read -r bundle; do
+                  echo "Checking bundle: $bundle"
                   if [[ "$bundle" == *"$digest"* ]]; then
                     cp "$bundle" "${file}.intoto.jsonl"
-                    echo "Copied attestation for $(basename "$file")"
+                    echo "✓ Copied attestation for $(basename "$file")"
                     break
                   fi
                 done < "${RUNNER_TEMP}/created_attestation_paths.txt"
               fi
-            fi
-          done
+            done
+          else
+            echo "ERROR: ${RUNNER_TEMP}/created_attestation_paths.txt not found!"
+            echo "Listing ${RUNNER_TEMP}:"
+            ls -la "${RUNNER_TEMP}" | head -20
+          fi
 
       - name: Upload attestation bundles and signatures to release
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090  # v2

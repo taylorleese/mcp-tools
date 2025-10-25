@@ -121,16 +121,24 @@ jobs:
             ./dist/*.tar.gz
             ./dist/*.whl
 
-      - name: Download attestation bundles
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Copy attestation bundles for OpenSSF Scorecard
         run: |
-          # Download attestation bundles for OpenSSF Scorecard
+          # Copy attestation bundles next to their artifacts with .intoto.jsonl extension
+          # The bundles contain the artifact digest, we need to match them to actual files
           for file in dist/*.whl dist/*.tar.gz; do
             if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              gh attestation download "$file" -o "${file}.intoto.jsonl" \
-                || echo "No attestation for $filename"
+              # Calculate the digest of the artifact
+              digest=$(sha256sum "$file" | awk '{print $1}')
+              # Find the bundle with this digest in its filename
+              if [ -f "${RUNNER_TEMP}/created_attestation_paths.txt" ]; then
+                while IFS= read -r bundle; do
+                  if [[ "$bundle" == *"$digest"* ]]; then
+                    cp "$bundle" "${file}.intoto.jsonl"
+                    echo "Copied attestation for $(basename "$file")"
+                    break
+                  fi
+                done < "${RUNNER_TEMP}/created_attestation_paths.txt"
+              fi
             fi
           done
 

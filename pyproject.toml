@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-toolz"
-version = "0.3.4"
+version = "0.3.5"
 description = "Save contexts and todos across Claude Code sessions, get feedback from ChatGPT, Claude, Gemini, and DeepSeek"
 readme = "README.md"
 requires-python = ">=3.13"

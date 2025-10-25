@@ -1,5 +1,24 @@
 # Smithery configuration file: https://smithery.ai/docs/deployments
 
+name: mcp-toolz
+displayName: MCP Toolz
+description: Context management, todo persistence, and multi-AI perspectives for Claude Code
+category: productivity
+publisher: taylorleese
+repository: https://github.com/taylorleese/mcp-toolz
+license: MIT
+keywords:
+  - mcp
+  - model-context-protocol
+  - claude-code
+  - context-management
+  - todo-persistence
+  - chatgpt
+  - anthropic
+  - gemini
+  - deepseek
+  - productivity
+
 startCommand:
   type: stdio
   configSchema:

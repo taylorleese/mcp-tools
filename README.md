@@ -83,7 +83,9 @@ The primary way to use mcp-toolz is via the MCP server in Claude Code:
       "args": ["-m", "mcp_server"],
       "env": {
         "OPENAI_API_KEY": "sk-...",
-        "ANTHROPIC_API_KEY": "sk-ant-..."
+        "ANTHROPIC_API_KEY": "sk-ant-...",
+        "GOOGLE_API_KEY": "...",
+        "DEEPSEEK_API_KEY": "sk-..."
       }
     }
   }

@@ -784,3 +784,187 @@ class TestErrorHandling:
 
         assert result.exit_code == 1
         assert "No active todo snapshot found" in result.output
+
+    @patch("context_manager.cli.ChatGPTClient")
+    def test_ask_chatgpt_without_question(
+        self, mock_client: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test ask-chatgpt without custom question (second opinion)."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock ChatGPT response
+        mock_instance = MagicMock()
+        mock_instance.get_second_opinion.return_value = "This looks good"
+        mock_client.return_value = mock_instance
+
+        result = cli_runner.invoke(main, ["context", "ask-chatgpt", context_id])
+
+        assert result.exit_code == 0
+        assert "This looks good" in result.output
+        assert "Response saved" in result.output  # Should save when no custom question
+
+    @patch("context_manager.anthropic_client.ClaudeClient")
+    def test_ask_claude_without_question(
+        self, mock_client: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test ask-claude without custom question (second opinion)."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock Claude response
+        mock_instance = MagicMock()
+        mock_instance.get_second_opinion.return_value = "Claude thinks this is fine"
+        mock_client.return_value = mock_instance
+
+        result = cli_runner.invoke(main, ["context", "ask-claude", context_id])
+
+        assert result.exit_code == 0
+        assert "Claude thinks this is fine" in result.output
+        assert "Response saved" in result.output
+
+    def test_ask_claude_context_not_found(self, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test ask-claude with non-existent context."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+
+        result = cli_runner.invoke(main, ["context", "ask-claude", "nonexistent-id"])
+
+        assert result.exit_code == 1
+        assert "Context nonexistent-id not found" in result.output
+
+    @patch("context_manager.gemini_client.genai.configure")
+    @patch("context_manager.gemini_client.genai.GenerativeModel")
+    def test_ask_gemini_without_question(
+        self,
+        mock_model: MagicMock,
+        mock_configure: MagicMock,
+        cli_runner: CliRunner,
+        temp_db_path: str,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test ask-gemini without custom question (second opinion)."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock Gemini response
+        mock_instance = MagicMock()
+        mock_response = MagicMock()
+        mock_response.text = "Gemini analysis looks good"
+        mock_instance.generate_content.return_value = mock_response
+        mock_model.return_value = mock_instance
+
+        result = cli_runner.invoke(main, ["context", "ask-gemini", context_id])
+
+        assert result.exit_code == 0
+        assert "Gemini analysis looks good" in result.output
+        assert "Response saved" in result.output
+
+    @patch("context_manager.gemini_client.genai.configure")
+    @patch("context_manager.gemini_client.genai.GenerativeModel")
+    def test_ask_gemini_error(
+        self,
+        mock_model: MagicMock,
+        mock_configure: MagicMock,
+        cli_runner: CliRunner,
+        temp_db_path: str,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Test ask-gemini with API error."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock Gemini error
+        mock_instance = MagicMock()
+        mock_instance.generate_content.side_effect = Exception("API error")
+        mock_model.return_value = mock_instance
+
+        result = cli_runner.invoke(main, ["context", "ask-gemini", context_id])
+
+        assert result.exit_code == 1
+        assert "Error querying Gemini" in result.output
+
+    @patch("context_manager.deepseek_client.OpenAI")
+    def test_ask_deepseek_without_question(
+        self, mock_openai: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test ask-deepseek without custom question (second opinion)."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock DeepSeek response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "DeepSeek analysis complete"
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai.return_value = mock_client
+
+        result = cli_runner.invoke(main, ["context", "ask-deepseek", context_id])
+
+        assert result.exit_code == 0
+        assert "DeepSeek analysis complete" in result.output
+        assert "Response saved" in result.output
+
+    @patch("context_manager.deepseek_client.OpenAI")
+    def test_ask_deepseek_error(
+        self, mock_openai: MagicMock, cli_runner: CliRunner, temp_db_path: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test ask-deepseek with API error."""
+        monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+
+        # First save a context
+        save_result = cli_runner.invoke(main, ["context", "save", "--type", "code", "--title", "Test", "--content", "test code"])
+        import re
+
+        match = re.search(r"ID: ([a-f0-9-]+)", save_result.output)
+        assert match
+        context_id = match.group(1)
+
+        # Mock DeepSeek error
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.side_effect = Exception("API error")
+        mock_openai.return_value = mock_client
+
+        result = cli_runner.invoke(main, ["context", "ask-deepseek", context_id])
+
+        assert result.exit_code == 1
+        assert "Error querying DeepSeek" in result.output

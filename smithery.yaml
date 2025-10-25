@@ -1,6 +1,8 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
-runtime: container
+build:
+  dockerfile: Dockerfile
+  dockerBuildPath: .
 
 startCommand:
   type: stdio
@@ -26,8 +28,8 @@ startCommand:
         default: ~/.mcp-toolz/contexts.db
   commandFunction: |
     config => ({
-      command: 'uvx',
-      args: ['mcp-toolz'],
+      command: 'python',
+      args: ['-m', 'mcp_server'],
       env: {
         ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
         ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),

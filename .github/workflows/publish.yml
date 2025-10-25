@@ -129,8 +129,8 @@ jobs:
           for file in dist/*.whl dist/*.tar.gz; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              gh attestation download "$file" --repo "${{ github.repository }}" \
-                -o "${file}.intoto.jsonl" || echo "No attestation for $filename"
+              gh attestation download "$file" -o "${file}.intoto.jsonl" \
+                || echo "No attestation for $filename"
             fi
           done
 

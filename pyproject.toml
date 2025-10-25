@@ -103,3 +103,18 @@ add_ignore = ["D100", "D104"]  # Ignore missing docstrings in modules and packag
 [tool.vulture]
 exclude = ["venv/", "build/"]
 min_confidence = 80
+
+[tool.coverage.run]
+omit = [
+    "*/context_manager/__main__.py",
+    "*/mcp_server/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

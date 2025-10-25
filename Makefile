@@ -69,12 +69,22 @@ build: clean
 
 publish-test: build
 	@echo "Publishing to TestPyPI via GitHub Actions..."
-	@echo "Triggering publish workflow for TestPyPI..."
-	@gh workflow run publish.yml -f environment=testpypi
-	@echo "✅ Workflow triggered!"
-	@echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"
-	@echo "After publish completes, install with:"
-	@echo "  pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
+	if git diff --quiet pyproject.toml; then \
+		echo "No version changes detected."; \
+	else \
+		echo "Detected version change to v$$VERSION in pyproject.toml"; \
+		echo "Committing and pushing version change..."; \
+		git add pyproject.toml; \
+		git commit -m "Bump version to $$VERSION for TestPyPI"; \
+		git push; \
+	fi; \
+	echo "Triggering publish workflow for TestPyPI (v$$VERSION)..."; \
+	gh workflow run publish.yml -f environment=testpypi; \
+	echo "✅ Workflow triggered!"; \
+	echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"; \
+	echo "After publish completes, install with:"; \
+	echo "  pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
 
 publish: test lint build
 	@echo "Publishing to PyPI and GitHub..."

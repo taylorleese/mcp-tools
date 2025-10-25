@@ -110,3 +110,10 @@ jobs:
       uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1
       with:
         subject-path: 'dist/*'
+
+    - name: Sign artifacts with Sigstore
+      uses: sigstore/gh-action-sigstore-python@27dac9cce16c9883a0d4b51c9e0a520102d68016 # v3.0.1
+      with:
+        inputs: >-
+          ./dist/*.tar.gz
+          ./dist/*.whl

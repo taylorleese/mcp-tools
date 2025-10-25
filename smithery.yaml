@@ -1,8 +1,5 @@
 # Smithery configuration file: https://smithery.ai/docs/deployments
 
-startCommand:
-  type: stdio
-
 configSchema:
   type: object
   properties:
@@ -23,16 +20,17 @@ configSchema:
       description: SQLite database path for storing contexts and todos
       default: ~/.mcp-toolz/contexts.db
 
-commandFunction:
-  |-
-  (config) => ({
-    command: 'uvx',
-    args: ['mcp-toolz@0.3.2'],
-    env: {
-      ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
-      ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),
-      ...(config.googleApiKey && { GOOGLE_API_KEY: config.googleApiKey }),
-      ...(config.deepseekApiKey && { DEEPSEEK_API_KEY: config.deepseekApiKey }),
-      ...(config.dbPath && { MCP_TOOLS_DB_PATH: config.dbPath })
-    }
-  })
+startCommand:
+  type: stdio
+  commandFunction: |-
+    (config) => ({
+      command: 'uvx',
+      args: ['mcp-toolz@0.3.2'],
+      env: {
+        ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
+        ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),
+        ...(config.googleApiKey && { GOOGLE_API_KEY: config.googleApiKey }),
+        ...(config.deepseekApiKey && { DEEPSEEK_API_KEY: config.deepseekApiKey }),
+        ...(config.dbPath && { MCP_TOOLS_DB_PATH: config.dbPath })
+      }
+    })

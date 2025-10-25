@@ -3,6 +3,7 @@
 import os
 import tempfile
 from collections.abc import AsyncGenerator, Generator
+from datetime import UTC
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -33,12 +34,14 @@ async def storage(temp_db_path: str) -> AsyncGenerator[ContextStorage]:
     """Create a ContextStorage instance with a temporary database."""
     store = ContextStorage(temp_db_path)
     yield store
-    # SQLite connections are cleaned up automatically
+    store.close()
 
 
 @pytest.fixture
 def sample_context() -> ContextEntry:
     """Create a sample context entry for testing."""
+    from datetime import datetime
+
     return ContextEntry(
         type="code",
         title="Test Context",
@@ -46,6 +49,7 @@ def sample_context() -> ContextEntry:
         tags=["test", "sample"],
         project_path="/test/project",
         session_id="test-session-123",
+        session_timestamp=datetime.now(UTC),
     )
 
 

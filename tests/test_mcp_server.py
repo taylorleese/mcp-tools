@@ -1,5 +1,6 @@
 """Tests for MCP server functionality."""
 
+from collections.abc import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,10 +14,12 @@ class TestMCPServerTools:
     """Test MCP server tool handlers."""
 
     @pytest.fixture
-    def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> ContextMCPServer:
+    def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> Generator[ContextMCPServer]:
         """Create an MCP server instance with a temporary database."""
         monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
-        return ContextMCPServer()
+        server = ContextMCPServer()
+        yield server
+        server.storage.close()
 
     @pytest.mark.asyncio
     async def test_context_save_tool(self, mcp_server: ContextMCPServer) -> None:
@@ -258,10 +261,12 @@ class TestMCPServerResources:
     """Test MCP server resource handlers."""
 
     @pytest.fixture
-    def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> ContextMCPServer:
+    def mcp_server(self, temp_db_path: str, monkeypatch: pytest.MonkeyPatch) -> Generator[ContextMCPServer]:
         """Create an MCP server instance with a temporary database."""
         monkeypatch.setenv("MCP_TOOLZ_DB_PATH", temp_db_path)
-        return ContextMCPServer()
+        server = ContextMCPServer()
+        yield server
+        server.storage.close()
 
     @pytest.mark.asyncio
     async def test_list_resources(self, mcp_server: ContextMCPServer) -> None:
@@ -477,3 +482,168 @@ class TestMCPServerResources:
 
         assert result is not None
         assert "no active" in result.lower() or "not found" in result.lower()
+
+    @pytest.mark.asyncio
+    async def test_list_tools(self, mcp_server: ContextMCPServer) -> None:
+        """Test listing available tools."""
+        tools = await mcp_server.list_tools()
+
+        assert len(tools) >= 14
+        tool_names = [t.name for t in tools]
+        assert "context_search" in tool_names
+        assert "context_get" in tool_names
+        assert "context_list" in tool_names
+        assert "context_delete" in tool_names
+        assert "context_save" in tool_names
+        assert "todo_search" in tool_names
+        assert "todo_get" in tool_names
+        assert "todo_list" in tool_names
+        assert "todo_save" in tool_names
+        assert "todo_restore" in tool_names
+        assert "todo_delete" in tool_names
+        assert "ask_chatgpt" in tool_names
+        assert "ask_claude" in tool_names
+        assert "ask_gemini" in tool_names
+        assert "ask_deepseek" in tool_names
+
+    @pytest.mark.asyncio
+    async def test_todo_search_tool(self, mcp_server: ContextMCPServer, sample_todo_snapshot: TodoListSnapshot) -> None:
+        """Test the todo_search tool."""
+        # Save a snapshot
+        mcp_server.storage.save_todo_snapshot(sample_todo_snapshot)
+
+        # Search for it
+        result = await mcp_server.call_tool("todo_search", {"query": "Task", "limit": 10})
+
+        assert result is not None
+        assert len(result) > 0
+
+    @pytest.mark.asyncio
+    async def test_unknown_tool(self, mcp_server: ContextMCPServer) -> None:
+        """Test calling an unknown tool."""
+        result = await mcp_server.call_tool("unknown_tool_name", {})
+
+        assert result is not None
+        assert "unknown" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    @patch("mcp_server.server.ChatGPTClient")
+    async def test_ask_chatgpt_error_handling(
+        self,
+        mock_chatgpt_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test ask_chatgpt error handling."""
+        # Setup mock to raise ValueError
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(side_effect=ValueError("API key missing"))
+        mock_chatgpt_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask ChatGPT (should handle error)
+        result = await mcp_server.call_tool("ask_chatgpt", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "error" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    @patch("mcp_server.server.ClaudeClient")
+    async def test_ask_claude_error_handling(
+        self,
+        mock_claude_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test ask_claude error handling."""
+        # Setup mock to raise ValueError
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(side_effect=ValueError("API key missing"))
+        mock_claude_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask Claude (should handle error)
+        result = await mcp_server.call_tool("ask_claude", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "error" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    @patch("mcp_server.server.GeminiClient")
+    async def test_ask_gemini_error_handling(
+        self,
+        mock_gemini_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test ask_gemini error handling."""
+        # Setup mock to raise ValueError
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(side_effect=ValueError("API key missing"))
+        mock_gemini_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask Gemini (should handle error)
+        result = await mcp_server.call_tool("ask_gemini", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "error" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    @patch("mcp_server.server.DeepSeekClient")
+    async def test_ask_deepseek_error_handling(
+        self,
+        mock_deepseek_class: MagicMock,
+        mcp_server: ContextMCPServer,
+        sample_context: ContextEntry,
+    ) -> None:
+        """Test ask_deepseek error handling."""
+        # Setup mock to raise ValueError
+        mock_client = MagicMock()
+        mock_client.get_second_opinion = MagicMock(side_effect=ValueError("API key missing"))
+        mock_deepseek_class.return_value = mock_client
+
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Ask DeepSeek (should handle error)
+        result = await mcp_server.call_tool("ask_deepseek", {"context_id": sample_context.id})
+
+        assert result is not None
+        assert "error" in result[0].text.lower()
+
+    @pytest.mark.asyncio
+    async def test_read_session_contexts_resource(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
+        """Test reading contexts by session ID."""
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Read contexts for this session
+        from pydantic import AnyUrl
+
+        session_id = sample_context.session_id
+        result = await mcp_server.read_resource(AnyUrl(f"mcp-toolz://contexts/session/{session_id}"))
+
+        assert result is not None
+        assert isinstance(result, str)
+
+    @pytest.mark.asyncio
+    async def test_read_project_sessions_resource(self, mcp_server: ContextMCPServer, sample_context: ContextEntry) -> None:
+        """Test reading project sessions."""
+        # Save a context
+        mcp_server.storage.save_context(sample_context)
+
+        # Read sessions for this project
+        with patch("os.getcwd", return_value=sample_context.project_path):
+            from pydantic import AnyUrl
+
+            result = await mcp_server.read_resource(AnyUrl("mcp-toolz://contexts/project/sessions"))
+
+        assert result is not None
+        assert isinstance(result, str)

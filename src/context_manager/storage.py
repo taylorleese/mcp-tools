@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -18,9 +19,18 @@ class ContextStorage:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
+    def close(self) -> None:
+        """Close any open database connections.
+
+        This is a no-op since we use context managers for all connections.
+        All connections are automatically closed when their context exits.
+        This method exists for API compatibility with test fixtures.
+        """
+        # Nothing to do - all connections use context managers
+
     def _init_db(self) -> None:
         """Initialize database schema."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS contexts (
@@ -82,7 +92,7 @@ class ContextStorage:
 
     def save_context(self, context: ContextEntry) -> None:
         """Save a context entry to the database."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO contexts
@@ -111,7 +121,7 @@ class ContextStorage:
 
     def get_context(self, context_id: str) -> ContextEntry | None:
         """Retrieve a context entry by ID."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute("SELECT * FROM contexts WHERE id = ?", (context_id,))
             row = cursor.fetchone()
@@ -147,7 +157,7 @@ class ContextStorage:
         query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             return [self._row_to_context(row) for row in cursor.fetchall()]
@@ -171,14 +181,14 @@ class ContextStorage:
         sql_query += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(sql_query, params)
             return [self._row_to_context(row) for row in cursor.fetchall()]
 
     def update_chatgpt_response(self, context_id: str, response: str) -> None:
         """Update the ChatGPT response for a context."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 "UPDATE contexts SET chatgpt_response = ? WHERE id = ?",
                 (response, context_id),
@@ -187,7 +197,7 @@ class ContextStorage:
 
     def update_claude_response(self, context_id: str, response: str) -> None:
         """Update the Claude response for a context."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 "UPDATE contexts SET claude_response = ? WHERE id = ?",
                 (response, context_id),
@@ -196,7 +206,7 @@ class ContextStorage:
 
     def update_gemini_response(self, context_id: str, response: str) -> None:
         """Update the Gemini response for a context."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 "UPDATE contexts SET gemini_response = ? WHERE id = ?",
                 (response, context_id),
@@ -205,7 +215,7 @@ class ContextStorage:
 
     def update_deepseek_response(self, context_id: str, response: str) -> None:
         """Update the DeepSeek response for a context."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.execute(
                 "UPDATE contexts SET deepseek_response = ? WHERE id = ?",
                 (response, context_id),
@@ -214,7 +224,7 @@ class ContextStorage:
 
     def delete_context(self, context_id: str) -> bool:
         """Delete a context by ID. Returns True if deleted, False if not found."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             cursor = conn.execute("DELETE FROM contexts WHERE id = ?", (context_id,))
             conn.commit()
             return cursor.rowcount > 0
@@ -227,7 +237,7 @@ class ContextStorage:
         query = "SELECT * FROM contexts WHERE " + conditions + " ORDER BY timestamp DESC LIMIT ?"  # nosec B608
         params = [f"%{tag}%" for tag in tags] + [limit]
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             return [self._row_to_context(row) for row in cursor.fetchall()]
@@ -248,7 +258,7 @@ class ContextStorage:
             LIMIT ?
         """
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (project_path, limit))
             return [dict(row) for row in cursor.fetchall()]
@@ -257,7 +267,7 @@ class ContextStorage:
         """Get all contexts from a specific session."""
         query = "SELECT * FROM contexts WHERE session_id = ? ORDER BY timestamp ASC"
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, (session_id,))
             return [self._row_to_context(row) for row in cursor.fetchall()]
@@ -295,7 +305,7 @@ class ContextStorage:
 
     def save_todo_snapshot(self, snapshot: TodoListSnapshot) -> None:
         """Save a todo list snapshot to the database."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             # Mark other snapshots for this project as inactive
             if snapshot.is_active:
                 conn.execute(
@@ -326,7 +336,7 @@ class ContextStorage:
 
     def get_todo_snapshot(self, snapshot_id: str) -> TodoListSnapshot | None:
         """Retrieve a todo snapshot by ID."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute("SELECT * FROM todo_snapshots WHERE id = ?", (snapshot_id,))
             row = cursor.fetchone()
@@ -338,7 +348,7 @@ class ContextStorage:
 
     def get_active_todo_snapshot(self, project_path: str) -> TodoListSnapshot | None:
         """Get the active todo snapshot for a project."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(
                 "SELECT * FROM todo_snapshots WHERE project_path = ? AND is_active = 1",
@@ -368,7 +378,7 @@ class ContextStorage:
         query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             return [self._row_to_todo_snapshot(row) for row in cursor.fetchall()]
@@ -396,14 +406,14 @@ class ContextStorage:
         sql_query += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(sql_query, params)
             return [self._row_to_todo_snapshot(row) for row in cursor.fetchall()]
 
     def delete_todo_snapshot(self, snapshot_id: str) -> bool:
         """Delete a todo snapshot by ID. Returns True if deleted, False if not found."""
-        with sqlite3.connect(self.db_path) as conn:
+        with closing(sqlite3.connect(self.db_path)) as conn:
             cursor = conn.execute("DELETE FROM todo_snapshots WHERE id = ?", (snapshot_id,))
             conn.commit()
             return cursor.rowcount > 0

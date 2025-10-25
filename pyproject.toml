@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-toolz"
-version = "0.3.1"
+version = "0.3.2"
 description = "MCP server for Claude Code providing context management, todo persistence, and multi-AI perspectives"
 readme = "README.md"
 requires-python = ">=3.13"

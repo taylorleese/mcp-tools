@@ -1,5 +1,9 @@
 """Tests for context_manager.storage module."""
 
+import sqlite3
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from context_manager.storage import ContextStorage
@@ -255,3 +259,126 @@ class TestTodoStorage:
         project_a_snapshots = storage.list_todo_snapshots(project_path="/project/a")
         assert len(project_a_snapshots) == 1
         assert project_a_snapshots[0].project_path == "/project/a"
+
+
+@pytest.mark.unit
+class TestSQLiteConcurrency:
+    """Test SQLite concurrency protection features."""
+
+    def test_cloud_sync_path_detection_dropbox(self, tmp_path: Path) -> None:
+        """Test detection of Dropbox paths."""
+        db_path = tmp_path / "Dropbox" / "test.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        storage = ContextStorage(db_path)
+
+        assert storage._is_cloud_synced_path() is True
+
+    def test_cloud_sync_path_detection_google_drive(self, tmp_path: Path) -> None:
+        """Test detection of Google Drive paths."""
+        db_path = tmp_path / "Google Drive" / "test.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        storage = ContextStorage(db_path)
+
+        assert storage._is_cloud_synced_path() is True
+
+    def test_cloud_sync_path_detection_onedrive(self, tmp_path: Path) -> None:
+        """Test detection of OneDrive paths."""
+        db_path = tmp_path / "OneDrive" / "test.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        storage = ContextStorage(db_path)
+
+        assert storage._is_cloud_synced_path() is True
+
+    def test_cloud_sync_path_detection_icloud(self, tmp_path: Path) -> None:
+        """Test detection of iCloud Drive paths."""
+        db_path = tmp_path / "iCloud Drive" / "test.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        storage = ContextStorage(db_path)
+
+        assert storage._is_cloud_synced_path() is True
+
+    def test_local_path_not_cloud_synced(self, temp_db_path: str) -> None:
+        """Test that regular local paths are not detected as cloud-synced."""
+        storage = ContextStorage(temp_db_path)
+        assert storage._is_cloud_synced_path() is False
+
+    def test_wal_mode_enabled_on_local_paths(self, temp_db_path: str) -> None:
+        """Test that WAL mode is enabled on local non-cloud paths."""
+        storage = ContextStorage(temp_db_path)
+
+        # Check journal mode
+        with sqlite3.connect(storage.db_path) as conn:
+            result = conn.execute("PRAGMA journal_mode").fetchone()
+            assert result[0].upper() == "WAL"
+
+    def test_busy_timeout_configured(self, temp_db_path: str) -> None:
+        """Test that busy timeout is set to 5 seconds."""
+        storage = ContextStorage(temp_db_path)
+
+        with sqlite3.connect(storage.db_path) as conn:
+            result = conn.execute("PRAGMA busy_timeout").fetchone()
+            # Should be 5000ms (5 seconds)
+            assert result[0] == 5000
+
+    def test_cloud_path_uses_delete_mode(self, tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+        """Test that cloud-synced paths use DELETE mode instead of WAL."""
+        db_path = tmp_path / "Dropbox" / "test.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with caplog.at_level("WARNING"):
+            storage = ContextStorage(db_path)
+
+        # Should have logged a warning
+        assert "cloud-synced directory" in caplog.text
+
+        # Should use DELETE mode, not WAL
+        with sqlite3.connect(storage.db_path) as conn:
+            result = conn.execute("PRAGMA journal_mode").fetchone()
+            assert result[0].upper() == "DELETE"
+
+    def test_try_enable_wal_failure(self, temp_db_path: str) -> None:
+        """Test handling of WAL mode failure."""
+        storage = ContextStorage(temp_db_path)
+
+        # Mock a connection that fails to enable WAL
+        mock_conn = MagicMock()
+        mock_conn.execute.side_effect = sqlite3.OperationalError("WAL not supported")
+
+        result = storage._try_enable_wal(mock_conn)
+        assert result is False
+
+    def test_try_enable_wal_returns_none(self, temp_db_path: str) -> None:
+        """Test handling when PRAGMA returns None."""
+        storage = ContextStorage(temp_db_path)
+
+        # Mock a connection that returns None
+        mock_conn = MagicMock()
+        mock_conn.execute.return_value.fetchone.return_value = None
+
+        result = storage._try_enable_wal(mock_conn)
+        assert result is False
+
+    def test_configure_connection_with_wal_fallback(self, temp_db_path: str, caplog: pytest.LogCaptureFixture) -> None:
+        """Test fallback to DELETE mode when WAL fails."""
+        storage = ContextStorage(temp_db_path)
+
+        # Mock a connection where WAL fails
+        mock_conn = MagicMock()
+
+        def pragma_side_effect(query: str) -> MagicMock:
+            if "journal_mode=WAL" in query:
+                error_msg = "WAL not supported"
+                raise sqlite3.OperationalError(error_msg)
+            return MagicMock()
+
+        mock_conn.execute.side_effect = pragma_side_effect
+
+        # Should fall back to DELETE mode
+        with (
+            patch.object(storage, "_is_cloud_synced_path", return_value=False),
+            caplog.at_level("DEBUG"),
+        ):
+            storage._configure_connection(mock_conn)
+
+        # Should have logged debug message about fallback
+        assert "WAL mode not available" in caplog.text

@@ -1,6 +1,7 @@
 """Storage layer for context entries using SQLite."""
 
 import json
+import logging
 import sqlite3
 from contextlib import closing
 from datetime import datetime
@@ -8,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 from models import ContextContent, ContextEntry, Todo, TodoListSnapshot
+
+logger = logging.getLogger(__name__)
 
 
 class ContextStorage:
@@ -28,9 +31,75 @@ class ContextStorage:
         """
         # Nothing to do - all connections use context managers
 
+    def _try_enable_wal(self, conn: sqlite3.Connection) -> bool:
+        """Try to enable WAL mode, return False if it fails.
+
+        WAL mode improves concurrent access but doesn't work on network filesystems.
+        """
+        try:
+            result = conn.execute("PRAGMA journal_mode=WAL").fetchone()
+            return result is not None and result[0].upper() == "WAL"
+        except sqlite3.OperationalError:
+            return False
+
+    def _is_cloud_synced_path(self) -> bool:
+        """Detect if database path is in a cloud-synced directory.
+
+        Cloud sync services can corrupt SQLite databases when syncing
+        WAL files separately from the main database file.
+        """
+        path_str = str(self.db_path.resolve())
+        cloud_indicators = [
+            "/Dropbox/",
+            "\\Dropbox\\",
+            "/Google Drive/",
+            "\\Google Drive\\",
+            "/OneDrive/",
+            "\\OneDrive\\",
+            "/iCloud Drive/",
+            "Library/Mobile Documents/",
+            "/Box/",
+            "\\Box\\",
+        ]
+        return any(indicator in path_str for indicator in cloud_indicators)
+
+    def _configure_connection(self, conn: sqlite3.Connection) -> None:
+        """Configure connection with optimal concurrency settings.
+
+        Attempts to enable WAL mode for better concurrent access.
+        Falls back to DELETE mode for network/cloud filesystems.
+        Always sets a busy timeout to handle lock contention.
+        """
+        # Check for cloud sync BEFORE attempting WAL
+        is_cloud_synced = self._is_cloud_synced_path()
+
+        if is_cloud_synced:
+            # Don't use WAL on cloud-synced directories - corruption risk
+            conn.execute("PRAGMA journal_mode=DELETE")
+            logger.warning(
+                "Database is in a cloud-synced directory (%s). "
+                "Using DELETE journal mode instead of WAL to prevent corruption. "
+                "Consider using a local directory for better concurrent access.",
+                self.db_path.parent,
+            )
+        else:
+            # Try to enable WAL for better concurrent access
+            wal_enabled = self._try_enable_wal(conn)
+
+            if not wal_enabled:
+                # Fall back to DELETE mode if WAL fails (e.g., network filesystem)
+                conn.execute("PRAGMA journal_mode=DELETE")
+                logger.debug("WAL mode not available, using DELETE journal mode")
+
+        # Set busy timeout to 5 seconds - allows automatic retry on lock contention
+        conn.execute("PRAGMA busy_timeout=5000")
+
     def _init_db(self) -> None:
         """Initialize database schema."""
         with closing(sqlite3.connect(self.db_path)) as conn:
+            # Configure connection for optimal concurrency
+            self._configure_connection(conn)
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS contexts (
@@ -306,33 +375,40 @@ class ContextStorage:
     def save_todo_snapshot(self, snapshot: TodoListSnapshot) -> None:
         """Save a todo list snapshot to the database."""
         with closing(sqlite3.connect(self.db_path)) as conn:
-            # Mark other snapshots for this project as inactive
-            if snapshot.is_active:
-                conn.execute(
-                    "UPDATE todo_snapshots SET is_active = 0 WHERE project_path = ?",
-                    (snapshot.project_path,),
-                )
+            # Use BEGIN IMMEDIATE to acquire write lock immediately and prevent race conditions
+            # This prevents two concurrent processes from both marking their snapshots as active
+            conn.execute("BEGIN IMMEDIATE")
+            try:
+                # Mark other snapshots for this project as inactive
+                if snapshot.is_active:
+                    conn.execute(
+                        "UPDATE todo_snapshots SET is_active = 0 WHERE project_path = ?",
+                        (snapshot.project_path,),
+                    )
 
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO todo_snapshots
-                (id, timestamp, project_path, git_branch, context, session_context_id,
-                 is_active, todos, metadata)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    snapshot.id,
-                    snapshot.timestamp.isoformat(),
-                    snapshot.project_path,
-                    snapshot.git_branch,
-                    snapshot.context,
-                    snapshot.session_context_id,
-                    1 if snapshot.is_active else 0,
-                    json.dumps([todo.model_dump() for todo in snapshot.todos]),
-                    json.dumps(snapshot.metadata),
-                ),
-            )
-            conn.commit()
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO todo_snapshots
+                    (id, timestamp, project_path, git_branch, context, session_context_id,
+                     is_active, todos, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        snapshot.id,
+                        snapshot.timestamp.isoformat(),
+                        snapshot.project_path,
+                        snapshot.git_branch,
+                        snapshot.context,
+                        snapshot.session_context_id,
+                        1 if snapshot.is_active else 0,
+                        json.dumps([todo.model_dump() for todo in snapshot.todos]),
+                        json.dumps(snapshot.metadata),
+                    ),
+                )
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
 
     def get_todo_snapshot(self, snapshot_id: str) -> TodoListSnapshot | None:
         """Retrieve a todo snapshot by ID."""

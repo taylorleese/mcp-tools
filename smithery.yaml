@@ -6,7 +6,5 @@ build:
 
 startCommand:
   type: stdio
-  command: python
-  args:
-    - "-m"
-    - "mcp_server"
+  commandFunction: |
+    () => ({ command: 'python', args: ['-m', 'mcp_server'] })

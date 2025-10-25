@@ -98,8 +98,8 @@ jobs:
       id-token: write  # Required for signing
       contents: write  # Required for attestation and release upload
       attestations: write
-    # Only run on actual releases
-    if: github.event_name == 'release'
+    # Run on releases and manual workflow dispatch for testing
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Download distribution artifacts
@@ -113,6 +113,32 @@ jobs:
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c  # v1
         with:
           subject-path: 'dist/*'
+
+      - name: Debug attestation outputs
+        run: |
+          echo "=== Attestation Action Outputs ==="
+          echo "Bundle path: ${{ steps.attest.outputs.bundle-path }}"
+          echo "Attestation ID: ${{ steps.attest.outputs.attestation-id }}"
+          echo "Attestation URL: ${{ steps.attest.outputs.attestation-url }}"
+
+          echo -e "\n=== Checking if bundle-path exists ==="
+          if [ -n "${{ steps.attest.outputs.bundle-path }}" ]; then
+            echo "Bundle path is set, checking file..."
+            if [ -f "${{ steps.attest.outputs.bundle-path }}" ]; then
+              echo "✓ Bundle file exists!"
+              ls -lh "${{ steps.attest.outputs.bundle-path }}"
+              echo -e "\nFirst 50 lines of bundle:"
+              head -50 "${{ steps.attest.outputs.bundle-path }}"
+            else
+              echo "✗ Bundle path set but file doesn't exist"
+            fi
+          else
+            echo "✗ Bundle path output is empty"
+          fi
+
+          echo -e "\n=== Searching for .jsonl files ==="
+          find $RUNNER_TEMP -type f -name "*.jsonl" 2>/dev/null || echo "No .jsonl files found in RUNNER_TEMP"
+          find . -type f -name "*.jsonl" 2>/dev/null || echo "No .jsonl files in current directory"
 
       - name: Sign artifacts with Sigstore
         uses: sigstore/gh-action-sigstore-python@27dac9cce16c9883a0d4b51c9e0a520102d68016  # v3.0.1

@@ -1,7 +1,5 @@
 # Smithery configuration file: https://smithery.ai/docs/deployments
 
-runtime: python
-
 configSchema:
   type: object
   properties:

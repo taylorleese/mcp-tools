@@ -1,5 +1,7 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
+runtime: container
+
 startCommand:
   type: stdio
   configSchema:
@@ -25,7 +27,7 @@ startCommand:
   commandFunction: |
     config => ({
       command: 'uvx',
-      args: ['mcp-toolz@0.3.2'],
+      args: ['mcp-toolz'],
       env: {
         ...(config.openaiApiKey && { OPENAI_API_KEY: config.openaiApiKey }),
         ...(config.anthropicApiKey && { ANTHROPIC_API_KEY: config.anthropicApiKey }),

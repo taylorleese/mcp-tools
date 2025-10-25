@@ -92,7 +92,7 @@ publish-test: build commit-version
 	echo "After publish completes, install with:"; \
 	echo "  pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
 
-publish: test lint build commit-version
+publish: test lint commit-version
 	@echo "Publishing to PyPI and GitHub..."
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
 	read -p "Are you sure you want to publish v$$VERSION to PyPI and GitHub? [y/N] " -n 1 -r; \
@@ -102,27 +102,39 @@ publish: test lint build commit-version
 		git tag -a v$$VERSION -m "Release v$$VERSION"; \
 		git push origin v$$VERSION; \
 		echo "Creating GitHub release v$$VERSION..."; \
-		gh release create v$$VERSION dist/* --generate-notes; \
-		echo "GitHub Actions workflow will publish to PyPI automatically..."; \
-		echo "✅ Released v$$VERSION! GitHub Actions publishing to PyPI..."; \
+		gh release create v$$VERSION --generate-notes --verify-tag; \
+		echo "✅ Release v$$VERSION created!"; \
+		echo ""; \
+		echo "GitHub Actions will automatically:"; \
+		echo "  1. Build distribution packages"; \
+		echo "  2. Publish to PyPI via Trusted Publishing"; \
+		echo "  3. Generate and upload SLSA attestations"; \
+		echo "  4. Sign artifacts with Sigstore"; \
+		echo ""; \
 		echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"; \
 		echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"; \
-		echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available shortly)"; \
+		echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available in ~2 min)"; \
 	else \
 		echo "❌ Publish cancelled"; \
 		exit 1; \
 	fi
 
-publish-force: test lint build commit-version
+publish-force: test lint commit-version
 	@echo "Publishing to PyPI and GitHub (no confirmation)..."
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
 	echo "Creating git tag v$$VERSION..."; \
 	git tag -a v$$VERSION -m "Release v$$VERSION"; \
 	git push origin v$$VERSION; \
 	echo "Creating GitHub release v$$VERSION..."; \
-	gh release create v$$VERSION dist/* --generate-notes; \
-	echo "GitHub Actions workflow will publish to PyPI automatically..."; \
-	echo "✅ Released v$$VERSION! GitHub Actions publishing to PyPI..."; \
+	gh release create v$$VERSION --generate-notes --verify-tag; \
+	echo "✅ Release v$$VERSION created!"; \
+	echo ""; \
+	echo "GitHub Actions will automatically:"; \
+	echo "  1. Build distribution packages"; \
+	echo "  2. Publish to PyPI via Trusted Publishing"; \
+	echo "  3. Generate and upload SLSA attestations"; \
+	echo "  4. Sign artifacts with Sigstore"; \
+	echo ""; \
 	echo "Monitor: https://github.com/taylorleese/mcp-toolz/actions/workflows/publish.yml"; \
 	echo "GitHub: https://github.com/taylorleese/mcp-toolz/releases/tag/v$$VERSION"; \
-	echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available shortly)"
+	echo "PyPI: https://pypi.org/project/mcp-toolz/$$VERSION/ (available in ~2 min)"

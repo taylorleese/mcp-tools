@@ -147,34 +147,16 @@ jobs:
             ./dist/*.tar.gz
             ./dist/*.whl
 
-      - name: Copy attestation bundles for OpenSSF Scorecard
+      - name: Copy attestation bundle for OpenSSF Scorecard
         run: |
-          # Copy attestation bundles next to their artifacts with .intoto.jsonl extension
-          echo "Checking for created_attestation_paths.txt..."
-          if [ -f "${RUNNER_TEMP}/created_attestation_paths.txt" ]; then
-            echo "Found attestation paths file:"
-            cat "${RUNNER_TEMP}/created_attestation_paths.txt"
-
-            for file in dist/*.whl dist/*.tar.gz; do
-              if [ -f "$file" ]; then
-                echo "Processing $file..."
-                digest=$(sha256sum "$file" | awk '{print $1}')
-                echo "Digest: $digest"
-
-                while IFS= read -r bundle; do
-                  echo "Checking bundle: $bundle"
-                  if [[ "$bundle" == *"$digest"* ]]; then
-                    cp "$bundle" "${file}.intoto.jsonl"
-                    echo "✓ Copied attestation for $(basename "$file")"
-                    break
-                  fi
-                done < "${RUNNER_TEMP}/created_attestation_paths.txt"
-              fi
-            done
+          # Copy the attestation bundle from the action output
+          # The bundle contains attestations for all artifacts in JSON Lines format
+          if [ -n "${{ steps.attest.outputs.bundle-path }}" ] && [ -f "${{ steps.attest.outputs.bundle-path }}" ]; then
+            cp "${{ steps.attest.outputs.bundle-path }}" dist/attestations.intoto.jsonl
+            echo "✓ Copied attestation bundle to dist/attestations.intoto.jsonl"
+            ls -lh dist/attestations.intoto.jsonl
           else
-            echo "ERROR: ${RUNNER_TEMP}/created_attestation_paths.txt not found!"
-            echo "Listing ${RUNNER_TEMP}:"
-            ls -la "${RUNNER_TEMP}" | head -20
+            echo "⚠️  No attestation bundle found at output path"
           fi
 
       - name: Upload attestation bundles and signatures to release

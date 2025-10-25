@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-cov lint format clean build publish-test publish publish-force
+.PHONY: help install install-dev test test-cov lint format clean build commit-version publish-test publish publish-force
 
 # Default target
 help:
@@ -67,18 +67,20 @@ build: clean
 	python3 -m build
 	@echo "✅ Built packages in dist/"
 
-publish-test: build
-	@echo "Publishing to TestPyPI via GitHub Actions..."
+# Helper target to commit and push version changes if needed
+commit-version:
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
-	if git diff --quiet pyproject.toml; then \
-		echo "No version changes detected."; \
-	else \
+	if ! git diff --quiet pyproject.toml; then \
 		echo "Detected version change to v$$VERSION in pyproject.toml"; \
 		echo "Committing and pushing version change..."; \
 		git add pyproject.toml; \
-		git commit -m "Bump version to $$VERSION for TestPyPI"; \
+		git commit -m "Bump version to $$VERSION"; \
 		git push; \
-	fi; \
+	fi
+
+publish-test: build commit-version
+	@echo "Publishing to TestPyPI via GitHub Actions..."
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
 	echo "Triggering publish workflow for TestPyPI (v$$VERSION)..."; \
 	gh workflow run publish.yml -f environment=testpypi; \
 	echo "✅ Workflow triggered!"; \
@@ -86,7 +88,7 @@ publish-test: build
 	echo "After publish completes, install with:"; \
 	echo "  pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ mcp-toolz"
 
-publish: test lint build
+publish: test lint build commit-version
 	@echo "Publishing to PyPI and GitHub..."
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
 	read -p "Are you sure you want to publish v$$VERSION to PyPI and GitHub? [y/N] " -n 1 -r; \
@@ -107,7 +109,7 @@ publish: test lint build
 		exit 1; \
 	fi
 
-publish-force: test lint build
+publish-force: test lint build commit-version
 	@echo "Publishing to PyPI and GitHub (no confirmation)..."
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
 	echo "Creating git tag v$$VERSION..."; \

@@ -1,6 +1,9 @@
-.PHONY: help install install-dev test test-cov lint format clean build commit-version publish-test publish publish-force
+.PHONY: all help install install-dev test test-cov lint format clean build commit-version publish-test publish publish-force
 
-# Default target
+# Default target - format, lint, and test
+all: format lint test
+
+# Help target
 help:
 	@echo "Available targets:"
 	@echo "  make install      - Install production dependencies"
@@ -40,6 +43,7 @@ format:
 	pre-commit run isort --all-files
 	pre-commit run ruff-format --all-files
 	pre-commit run ruff --all-files
+	pre-commit run markdownlint --all-files
 
 # Cleanup targets
 clean:

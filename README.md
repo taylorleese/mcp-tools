@@ -75,6 +75,7 @@ The primary way to use mcp-toolz is via the MCP server in Claude Code:
 1. **Add to Claude Code settings** (add this JSON to your Claude Code MCP settings):
 
 **If installed via pip:**
+
 ```json
 {
   "mcpServers": {
@@ -93,6 +94,7 @@ The primary way to use mcp-toolz is via the MCP server in Claude Code:
 ```
 
 **If installed from source:**
+
 ```json
 {
   "mcpServers": {
@@ -125,6 +127,7 @@ All MCP tools are automatically available - see [MCP Server Tools](#mcp-server-t
 The MCP server works NOW with Claude Code and provides these tools:
 
 **Context Tools:**
+
 - `context_save` - Save a new context (automatically includes session info)
 - `context_search` - Search by query or tags
 - `context_get` - Get by ID
@@ -132,12 +135,14 @@ The MCP server works NOW with Claude Code and provides these tools:
 - `context_delete` - Delete by ID
 
 **Multi-AI Perspective Tools:**
+
 - `ask_chatgpt` - Get ChatGPT's analysis of a context (supports custom questions)
 - `ask_claude` - Get Claude's analysis of a context (supports custom questions)
 - `ask_gemini` - Get Gemini's analysis of a context (supports custom questions)
 - `ask_deepseek` - Get DeepSeek's analysis of a context (supports custom questions)
 
 **Todo Tools:**
+
 - `todo_search` - Search snapshots
 - `todo_get` - Get by ID
 - `todo_list` - List recent
@@ -147,6 +152,7 @@ The MCP server works NOW with Claude Code and provides these tools:
 
 **Session Tracking:**
 When saving contexts through MCP tools, they are automatically tagged with:
+
 - Current project directory (`project_path`)
 - Session ID (unique per Claude Code session)
 - Session timestamp (when the session started)
@@ -160,6 +166,7 @@ Here are practical examples of how to use mcp-toolz in Claude Code:
 ### Example 1: Get Multiple AI Perspectives on Architecture Decisions
 
 **Prompt:**
+
 ```
 I'm deciding between using Redis or Memcached for caching user sessions.
 Save this as a context and ask ChatGPT for their analysis.
@@ -167,11 +174,13 @@ Use tags: caching, redis, memcached, architecture
 ```
 
 **What happens:**
+
 1. Claude Code uses `context_save` to save your architectural decision
 2. Then uses `ask_chatgpt` to get ChatGPT's perspective
 3. You can compare multiple AI perspectives to inform your decision
 
 **Follow-up prompts:**
+
 - "Ask Claude the same question for comparison"
 - "Ask Gemini for another perspective"
 - "What does DeepSeek think about this?"
@@ -180,20 +189,24 @@ Use tags: caching, redis, memcached, architecture
 ### Example 2: Session Continuity - Never Lose Your Place
 
 **Prompt (end of work session):**
+
 ```
 Save my current todo list so I can restore it tomorrow
 ```
 
 **What happens:**
+
 1. Claude Code uses `todo_save` to snapshot your current work state
 2. Todos are saved with project path and timestamp
 
 **Next day prompt:**
+
 ```
 What was I working on yesterday? Restore my todos.
 ```
 
 **What happens:**
+
 1. Claude Code uses `todo_restore` to get your last snapshot
 2. Shows you exactly where you left off
 3. You can jump right back into work
@@ -201,6 +214,7 @@ What was I working on yesterday? Restore my todos.
 ### Example 3: Debug with Multiple AI Perspectives
 
 **Prompt:**
+
 ```
 I'm getting "TypeError: Cannot read property 'map' of undefined" in my React component.
 The error occurs in UserList.jsx when rendering the users array.
@@ -209,6 +223,7 @@ Tags: react, debugging, javascript
 ```
 
 **What happens:**
+
 1. Claude Code uses `context_save` to record the error
 2. Uses `ask_chatgpt` to get OpenAI's debugging approach
 3. Uses `ask_claude` to get Anthropic's perspective
@@ -216,12 +231,14 @@ Tags: react, debugging, javascript
 5. You can compare different debugging strategies from multiple AI models
 
 **Follow-up prompts:**
+
 - "Search for other contexts tagged with 'react' bugs"
 - "Show me contexts from my last session"
 
 ### Example 4: Track Performance Optimization Ideas
 
 **Prompt:**
+
 ```
 Save this performance optimization idea: "Lazy load images below the fold using
 Intersection Observer API. Estimated 40% reduction in initial page load."
@@ -229,16 +246,19 @@ Type: suggestion, Tags: performance, optimization, images
 ```
 
 **What happens:**
+
 1. Claude Code uses `context_save` with type "suggestion"
 2. Context is searchable and tied to current project
 3. Available across all future sessions
 
 **Later prompt:**
+
 ```
 Search my contexts for performance optimization ideas
 ```
 
 **What happens:**
+
 1. Claude Code uses `context_search` with your query
 2. Returns all matching contexts across sessions
 3. You can review past optimization ideas
@@ -246,6 +266,7 @@ Search my contexts for performance optimization ideas
 ### Example 5: Cross-Session Knowledge Sharing
 
 **Prompt (in Project A):**
+
 ```
 I figured out how to handle OAuth refresh tokens properly.
 Save this so I can reference it in other projects:
@@ -255,12 +276,14 @@ Type: code, Tags: oauth, security, authentication
 ```
 
 **Prompt (later in Project B):**
+
 ```
 How did I implement OAuth refresh tokens in my last project?
 Search for contexts about oauth and show me what I saved.
 ```
 
 **What happens:**
+
 1. Claude Code uses `context_search` to find your OAuth implementation
 2. Retrieves the context across projects
 3. You reuse your own knowledge without starting from scratch
@@ -274,16 +297,19 @@ mcp-toolz makes it easy to share contexts and todos across multiple Claude Code 
 Claude Code can automatically discover and read contexts/todos via MCP resources:
 
 **Context Resources:**
+
 - `mcp-toolz://contexts/project/recent` - Recent contexts for current project
 - `mcp-toolz://contexts/project/sessions` - List of recent Claude Code sessions for current project
 - `mcp-toolz://contexts/session/{session_id}` - All contexts from a specific session
 
 **Todo Resources:**
+
 - `mcp-toolz://todos/recent` - Last 20 todo snapshots (all projects)
 - `mcp-toolz://todos/active` - Active todos for current working directory
 
 **Session Tracking:**
 Each Claude Code session automatically gets a unique session ID. All contexts saved during that session are tagged with:
+
 - `session_id` - UUID of the Claude Code session
 - `session_timestamp` - When the session started
 - `project_path` - Directory where the context was created
@@ -299,18 +325,21 @@ Resources are read-only views into the shared database. Claude Code can discover
 **For advanced use cases** (syncing across multiple machines via Dropbox, iCloud, etc.):
 
 1. **Choose a synced location** for the database:
+
 ```bash
 # Example: Use a synced folder (Dropbox, iCloud, network drive)
 mkdir -p ~/Dropbox/mcp-toolz-shared
 ```
 
 2. **Update `.env` file** or MCP config to point to the synced database:
+
 ```bash
 # In .env file
 MCP_TOOLZ_DB_PATH=~/Dropbox/mcp-toolz-shared/contexts.db
 ```
 
 Or in your MCP config:
+
 ```json
 {
   "mcpServers": {
@@ -397,6 +426,7 @@ Or in your MCP config:
 ```
 
 **Context Types:**
+
 - `suggestion` - Architecture decisions, implementation plans
 - `code` - Code snippets, implementations
 - `conversation` - Discussions, Q&A sessions
@@ -524,19 +554,23 @@ MCP_TOOLZ_DEEPSEEK_MODEL=deepseek-chat                        # DeepSeek model
 ## Troubleshooting
 
 ### "Error 401: Invalid API key"
+
 - Verify API keys are set in `.env` (OPENAI_API_KEY and/or ANTHROPIC_API_KEY)
 - Check billing is enabled on your OpenAI/Anthropic account
 - The `./mcp-toolz` wrapper automatically unsets shell environment variables to use `.env`
 
 ### "No module named context_manager"
+
 - Use `./mcp-toolz` helper script (recommended)
 - Or set `PYTHONPATH=src` before running Python directly
 
 ### Commands not found
+
 - Activate venv: `source venv/bin/activate`
 - Make script executable: `chmod +x mcp-toolz`
 
 ### Todos not restoring
+
 - Check you're in the same project directory
 - Use `./mcp-toolz todo list` to see all snapshots
 - Restore specific snapshot: `./mcp-toolz todo restore <snapshot-id>`
@@ -582,6 +616,7 @@ cp .env.example .env
 ```
 
 ### Running Tests
+
 ```bash
 source venv/bin/activate
 pytest

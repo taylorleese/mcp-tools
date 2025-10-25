@@ -21,7 +21,7 @@ For a list of disclosed security vulnerabilities, see our [GitHub Security Advis
 
 Instead, please report them via email to: **tleese22 [at] gmail [dot] com**
 
-Alternatively, you can use GitHub's private vulnerability reporting: https://github.com/taylorleese/mcp-toolz/security/advisories/new
+Alternatively, you can use GitHub's private vulnerability reporting: <https://github.com/taylorleese/mcp-toolz/security/advisories/new>
 
 You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 

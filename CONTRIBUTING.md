@@ -191,6 +191,7 @@ Look for issues labeled `good first issue` - these are great starting points for
 ### Bug Reports
 
 Found a bug? Please open an issue with:
+
 - Description of the bug
 - Steps to reproduce
 - Expected vs actual behavior

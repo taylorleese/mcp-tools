@@ -1,0 +1,16 @@
+FROM python:3.13-slim-bookworm
+
+WORKDIR /app
+
+# Install from PyPI instead of building from source
+RUN pip install --no-cache-dir mcp-toolz==0.3.2
+
+# Run as non-root user
+RUN useradd -m -u 1000 app && \
+    mkdir -p /home/app/.mcp-toolz && \
+    chown -R app:app /home/app
+
+USER app
+
+# Run the MCP server
+ENTRYPOINT ["python", "-m", "mcp_server"]

@@ -23,6 +23,7 @@ htmlcov/
 coverage.xml
 *.cover
 junit.xml
+tests/
 
 # IDEs
 .vscode/
@@ -54,6 +55,8 @@ docs/
 .env
 .env.*
 !.env.example
+node_modules/
+.cache/
 
 # Temporary
 /tmp/

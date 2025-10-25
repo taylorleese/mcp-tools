@@ -4,6 +4,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/taylorleese/mcp-toolz)](https://github.com/taylorleese/mcp-toolz/issues)
 [![GitHub last commit](https://img.shields.io/github/last-commit/taylorleese/mcp-toolz)](https://github.com/taylorleese/mcp-toolz/commits/main)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11358/badge)](https://www.bestpractices.dev/projects/11358)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/taylorleese/mcp-toolz/badge)](https://scorecard.dev/viewer/?uri=github.com/taylorleese/mcp-toolz)
 [![codecov](https://codecov.io/gh/taylorleese/mcp-toolz/branch/main/graph/badge.svg)](https://codecov.io/gh/taylorleese/mcp-toolz)
 [![PyPI version](https://img.shields.io/pypi/v/mcp-toolz.svg)](https://pypi.org/project/mcp-toolz/)
 

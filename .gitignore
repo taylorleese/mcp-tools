@@ -40,7 +40,7 @@ data/*.db-journal
 *~
 
 # Claude Code local settings
-.claude/settings.local.json
+.claude/
 
 # OS
 .DS_Store
@@ -51,3 +51,8 @@ Thumbs.db
 htmlcov/
 coverage.xml
 junit.xml
+.pytest_cache/
+
+# Tool caches
+.mypy_cache/
+.ruff_cache/

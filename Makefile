@@ -38,6 +38,9 @@ lint:
 
 # Formatting targets (via pre-commit for consistency)
 format:
+	pre-commit run trailing-whitespace --all-files
+	pre-commit run end-of-file-fixer --all-files
+	pre-commit run autoflake --all-files
 	pre-commit run black --all-files
 	pre-commit run isort --all-files
 	pre-commit run ruff-format --all-files

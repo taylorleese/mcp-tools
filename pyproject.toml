@@ -39,7 +39,7 @@ dependencies = [
     "anthropic==0.71.0",
     "google-generativeai==0.8.5",
     "click==8.3.0",
-    "python-dotenv==1.1.1",
+    "python-dotenv==1.2.1",
     "aiosqlite==0.21.0",
 ]
 

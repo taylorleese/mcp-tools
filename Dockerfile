@@ -14,7 +14,7 @@ COPY requirements.txt ./
 
 # Create virtual environment and install dependencies
 RUN python -m venv /app/.venv && \
-    /app/.venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /app/.venv/bin/pip install --no-cache-dir pip==24.3.1 && \
     /app/.venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Copy source code

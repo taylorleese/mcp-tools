@@ -20,20 +20,20 @@ RUN python -m venv /app/.venv && \
 # Copy source code
 COPY src ./src
 
-# Install the project (non-editable for production)
-# Use --no-deps to ensure all dependencies are already installed with hash verification
-RUN /app/.venv/bin/pip install --no-cache-dir --no-deps .
-
 # Runtime stage
 FROM python:3.14-slim-bookworm@sha256:e8ea0e4fc6f1876e7d2cfccc0071847534b1d72f2359cf0fd494006d05358faa
 
 WORKDIR /app
 
-# Copy the virtual environment from the builder
+# Copy the virtual environment and source code from the builder
 COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/src /app/src
 
 # Add venv to PATH
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Add source to PYTHONPATH so modules can be found without installation
+ENV PYTHONPATH="/app/src"
 
 # Set Python to run in unbuffered mode for better logging
 ENV PYTHONUNBUFFERED=1

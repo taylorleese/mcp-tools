@@ -10,20 +10,19 @@ RUN apt-get update && \
 
 # Copy dependency files
 COPY pyproject.toml README.md LICENSE ./
-COPY requirements.txt ./
+COPY requirements-pip.txt requirements.txt ./
 
 # Create virtual environment and install dependencies
 RUN python -m venv /app/.venv && \
-    /app/.venv/bin/pip install --no-cache-dir pip==25.3 \
-        --hash sha256:8d0538dbbd7babbd207f261ed969c65de439f6bc9e5dbd3b3b9a77f25d95f343 \
-        --hash sha256:9655943313a94722b7774661c21049070f6bbb0a1516bf02f7c8d5d9201514cd && \
-    /app/.venv/bin/pip install --no-cache-dir -r requirements.txt
+    /app/.venv/bin/pip install --require-hashes --no-cache-dir -r requirements-pip.txt && \
+    /app/.venv/bin/pip install --require-hashes --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY src ./src
 
 # Install the project (non-editable for production)
-RUN /app/.venv/bin/pip install --no-cache-dir .
+# Use --no-deps to ensure all dependencies are already installed with hash verification
+RUN /app/.venv/bin/pip install --no-cache-dir --no-deps .
 
 # Runtime stage
 FROM python:3.14-slim-bookworm@sha256:e8ea0e4fc6f1876e7d2cfccc0071847534b1d72f2359cf0fd494006d05358faa

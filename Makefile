@@ -1,4 +1,4 @@
-.PHONY: all help install install-dev test test-cov lint format clean build commit-version publish-test publish
+.PHONY: all help install install-dev compile-deps compile-requirements compile-requirements-dev check-deps test test-cov lint format clean build commit-version publish-test publish
 
 # Default target - format, lint, and test
 all: format lint test
@@ -6,16 +6,20 @@ all: format lint test
 # Help target
 help:
 	@echo "Available targets:"
-	@echo "  make install      - Install production dependencies"
-	@echo "  make install-dev  - Install development dependencies"
-	@echo "  make test         - Run tests in parallel"
-	@echo "  make test-cov     - Run tests with coverage report"
-	@echo "  make lint         - Run all linters via pre-commit"
-	@echo "  make format       - Format code via pre-commit"
-	@echo "  make clean        - Remove generated files and caches"
-	@echo "  make build        - Build distribution packages"
-	@echo "  make publish-test - Publish to TestPyPI"
-	@echo "  make publish      - Publish to PyPI and GitHub release (runs tests first)"
+	@echo "  make install                - Install production dependencies"
+	@echo "  make install-dev            - Install development dependencies"
+	@echo "  make compile-deps           - Compile both requirements.txt and requirements-dev.txt with hashes"
+	@echo "  make compile-requirements   - Compile only requirements.txt from requirements.in"
+	@echo "  make compile-requirements-dev - Compile only requirements-dev.txt from requirements-dev.in"
+	@echo "  make check-deps             - Verify requirements.txt files are in sync with .in files"
+	@echo "  make test                   - Run tests in parallel"
+	@echo "  make test-cov               - Run tests with coverage report"
+	@echo "  make lint                   - Run all linters via pre-commit"
+	@echo "  make format                 - Format code via pre-commit"
+	@echo "  make clean                  - Remove generated files and caches"
+	@echo "  make build                  - Build distribution packages"
+	@echo "  make publish-test           - Publish to TestPyPI"
+	@echo "  make publish                - Publish to PyPI and GitHub release (runs tests first)"
 
 # Installation targets
 install:
@@ -24,6 +28,31 @@ install:
 install-dev:
 	pip install -r requirements-dev.txt
 	pre-commit install
+
+# Dependency compilation targets
+compile-requirements:
+	@echo "Compiling requirements.txt from requirements.in..."
+	@pip install --quiet pip-tools==7.5.2
+	pip-compile --no-strip-extras --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
+	@echo "✅ requirements.txt compiled!"
+
+compile-requirements-dev:
+	@echo "Compiling requirements-dev.txt from requirements-dev.in..."
+	@pip install --quiet pip-tools==7.5.2
+	pip-compile --no-strip-extras --allow-unsafe --generate-hashes --output-file=requirements-dev.txt requirements-dev.in
+	@echo "✅ requirements-dev.txt compiled!"
+
+compile-deps: compile-requirements compile-requirements-dev
+	@echo "✅ All requirements compiled!"
+
+check-deps:
+	@echo "Checking if requirements.txt files are in sync with .in files..."
+	@pip install --quiet pip-tools==7.5.2
+	@pip-compile --no-strip-extras --allow-unsafe --dry-run --quiet --generate-hashes --output-file=requirements.txt requirements.in || \
+		(echo "❌ requirements.txt is out of sync with requirements.in! Run 'make compile-requirements'" && exit 1)
+	@pip-compile --no-strip-extras --allow-unsafe --dry-run --quiet --generate-hashes --output-file=requirements-dev.txt requirements-dev.in || \
+		(echo "❌ requirements-dev.txt is out of sync with requirements-dev.in! Run 'make compile-requirements-dev'" && exit 1)
+	@echo "✅ All requirements files are in sync!"
 
 # Testing targets
 test:

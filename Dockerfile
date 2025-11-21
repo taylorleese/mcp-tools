@@ -14,8 +14,10 @@ COPY requirements.txt ./
 
 # Create virtual environment and install dependencies
 RUN python -m venv /app/.venv && \
-    /app/.venv/bin/pip install --no-cache-dir pip==24.3.1 && \
-    /app/.venv/bin/pip install --no-cache-dir -r requirements.txt
+    /app/.venv/bin/pip install --no-cache-dir pip==25.3 \
+        --hash sha256:8d0538dbbd7babbd207f261ed969c65de439f6bc9e5dbd3b3b9a77f25d95f343 \
+        --hash sha256:9655943313a94722b7774661c21049070f6bbb0a1516bf02f7c8d5d9201514cd && \
+    /app/.venv/bin/pip install --no-cache-dir --require-hashes -r requirements.txt
 
 # Copy source code
 COPY src ./src

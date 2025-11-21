@@ -33,13 +33,13 @@ install-dev:
 compile-requirements:
 	@echo "Compiling requirements.txt from requirements.in..."
 	@pip install --quiet pip-tools==7.5.2
-	pip-compile --generate-hashes --output-file=requirements.txt requirements.in
+	pip-compile --strip-extras --allow-unsafe --generate-hashes --output-file=requirements.txt requirements.in
 	@echo "✅ requirements.txt compiled!"
 
 compile-requirements-dev:
 	@echo "Compiling requirements-dev.txt from requirements-dev.in..."
 	@pip install --quiet pip-tools==7.5.2
-	pip-compile --generate-hashes --output-file=requirements-dev.txt requirements-dev.in
+	pip-compile --strip-extras --allow-unsafe --generate-hashes --output-file=requirements-dev.txt requirements-dev.in
 	@echo "✅ requirements-dev.txt compiled!"
 
 compile-deps: compile-requirements compile-requirements-dev
@@ -48,9 +48,9 @@ compile-deps: compile-requirements compile-requirements-dev
 check-deps:
 	@echo "Checking if requirements.txt files are in sync with .in files..."
 	@pip install --quiet pip-tools==7.5.2
-	@pip-compile --dry-run --quiet --generate-hashes --output-file=requirements.txt requirements.in || \
+	@pip-compile --strip-extras --allow-unsafe --dry-run --quiet --generate-hashes --output-file=requirements.txt requirements.in || \
 		(echo "❌ requirements.txt is out of sync with requirements.in! Run 'make compile-requirements'" && exit 1)
-	@pip-compile --dry-run --quiet --generate-hashes --output-file=requirements-dev.txt requirements-dev.in || \
+	@pip-compile --strip-extras --allow-unsafe --dry-run --quiet --generate-hashes --output-file=requirements-dev.txt requirements-dev.in || \
 		(echo "❌ requirements-dev.txt is out of sync with requirements-dev.in! Run 'make compile-requirements-dev'" && exit 1)
 	@echo "✅ All requirements files are in sync!"
 

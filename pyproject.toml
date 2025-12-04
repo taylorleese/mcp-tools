@@ -33,7 +33,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "mcp==1.22.0",
+    "mcp==1.23.0",
     "pydantic==2.12.5",
     "openai==2.8.1",
     "anthropic==0.75.0",
